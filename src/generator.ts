@@ -118,6 +118,6 @@ function createSearchParams(search: Parameter): string {
 		.filter(
 			([_, value]) => value !== '' && value !== undefined && value !== null
 		)
-		.map(([key, value]) => `${key}=${value}`)
+		.map(([key, value]) => `${key}=${encodeURIComponent(value as string | number)}`)
 		.join('&');
 }
