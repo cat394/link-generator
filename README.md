@@ -1,0 +1,5 @@
+# Link Generator
+
+# Licence
+
+MIT
