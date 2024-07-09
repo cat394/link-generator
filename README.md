@@ -245,6 +245,14 @@ Example of use:
    const youtubeLink = link("users", { videoid: "123" }); // => https://youtube.com/123
    ```
 
+## Acknowledgements
+
+This project was inspired by and built upon the following project:
+
+- [nanostores/router](https://github.com/nanostores/router) by [ai](https://github.com/ai)
+
+We are grateful to the original authors for their hard work and contributions to the open-source community.
+
 ## Licence
 
 MIT
