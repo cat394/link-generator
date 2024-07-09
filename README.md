@@ -1,3 +1,5 @@
+<img width="800" height="450" src="https://github.com/cat394/link-generator/blob/master/images/thumbnail.webp" alt="A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'" style="width:100%;height:auto;" />
+
 # Link Generator
 
 This is a simple link generator that allows you to centrally manage link
