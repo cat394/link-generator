@@ -66,14 +66,15 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
     if (search) {
       const searchParams = createSearchParams(search as unknown as Parameter);
 
-      path += `?q=${searchParams}`;
+      // If all search parameters are undefined, no query parameters are added.
+      searchParams ? path += `?q=${searchParams}` : "";
     }
 
     return path;
   };
 }
 
-export function isRootPath(path: string): boolean {
+function isRootPath(path: string): boolean {
   return path === "/";
 }
 

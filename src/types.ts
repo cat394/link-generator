@@ -104,7 +104,10 @@ type ExtractSearch<Segment extends string> = Segment extends
   : Segment extends
     `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<QueryName, InferParamType<Constraint>>
-  : Record<Segment, string | number>;
+  : Segment extends `${infer QueryName}${Symbols.OptionalParam}`
+    ? Partial<Record<QueryName, string | number>>
+  : Segment extends `${infer QueryName}` ? Record<QueryName, string | number>
+  : never;
 
 type Params<Path extends string> = ExtractParams<ParseSegment<Path>[number]>;
 
