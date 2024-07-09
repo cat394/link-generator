@@ -102,24 +102,40 @@ bunx jsr add @kokomi/link-generator
 
 ### Query Parameters
 
-To define the query parameter for a route, add a `query` property to the route
-configuration object. The query property should be an object with keys as query
-parameter names and values as types.
+To define the query parameter field, write the path like this **Remember to
+prefix the query parameter with `/`!**
 
 Example:
 
-```ts
-const routeConfig = {
-  categories: {
-    path: "categories/:categoryid",
-    query: {
-      filter: "string",
-      sort: "string",
-    },
-  },
-} as const satisfies RouteConfig;
-```
+1. Defines a route configuration object
 
+   ```ts
+   const routeConfig = {
+     posts: {
+       path: "posts/:postid/?q=page",
+     },
+   } as const satisfies RouteConfig;
+   ```
+
+2. Create a link generator.
+
+   ```ts
+   const link = createLinkGenerator(flatRouteConfig);
+   ```
+
+3. Generates a link.
+
+   The final output from the link generator will be stripped of the `/` before
+   the query parameter that was required when defining the path.
+
+   ```ts
+   const postpage = link(
+     "users/posts",
+     { userid: "alice", postid: "1" },
+     { page: 10 },
+   );
+   // => '/users/alice/posts/1?q=page=10'
+   ```
 ### Optional Type
 
 When a path parameter or query parameter value is set to `null` or `undefined`,
