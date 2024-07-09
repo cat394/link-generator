@@ -99,7 +99,7 @@ bunx jsr add @kokomi/link-generator
 
 ### Query Parameters
 
-To define the query parameter field, **write the path like this Remember to
+To define the query parameter field, write the path like this **Remember to
 prefix the query parameter with `/`!**
 
 Example:
