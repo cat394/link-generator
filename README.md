@@ -24,15 +24,15 @@ or a string literal type that is a numeric literal type.
    ```ts
    const routeConfig = {
       home: {
-      path:"/"
-      },
+         path:"/"
+         },
       users: {
-      path:"users/:userid"
-      children: {
-      posts: {
-      path:"posts/:postid"
-      },
-      },
+         path:"users/:userid"
+         children: {
+            posts: {
+               path:"posts/:postid"
+            },
+         },
       }
    } as const satisfies RouteConfig;.
    ```
@@ -75,7 +75,7 @@ Example:
 1. Defines a route configuration object
 
    ```ts
-   constrouteConfig = {
+   const routeConfig = {
      posts: {
        path: "posts/:postid/?q=page",
      },
@@ -135,7 +135,7 @@ Example:
    path.
 
    ```ts
-   constrouteConfig = {
+   const routeConfig = {
      users: {
        path: "users/:userid<string>",
      },
@@ -184,14 +184,14 @@ Example of use:
 
    ```ts
    const routeConfig = {
-       "*external": {
-               path:"https://"
-               children: {
-               youtube: {
-                   path:"youtube.com/:videoid"
-               },
-           },
-       },
+      "*external": {
+         path:"https://"
+         children: {
+            youtube: {
+               path:"youtube.com/:videoid"
+            }
+         }
+      }
    } as const satisfies RouteConfig;
    ```
 
