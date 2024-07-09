@@ -1,10 +1,10 @@
 import type {
-	ExtractRouteData,
-	FlatRouteConfig,
-	LinkGenerator,
-	Parameter,
-} from './types.ts';
-import { Symbols } from './symbols.ts';
+  ExtractRouteData,
+  FlatRouteConfig,
+  LinkGenerator,
+  Parameter,
+} from "./types.ts";
+import { Symbols } from "./symbols.ts";
 
 /**
  * 	This function create link generator.
@@ -42,82 +42,84 @@ import { Symbols } from './symbols.ts';
  * @returns A function to generate links.
  */
 export function createLinkGenerator<Config extends FlatRouteConfig>(
-	flatRouteConfig: Config
+  flatRouteConfig: Config,
 ): LinkGenerator<Config> {
-	return <RouteId extends keyof Config>(
-		routeId: RouteId,
-		params?: ExtractRouteData<Config>[RouteId]['search'] extends never
-			? ExtractRouteData<Config>[RouteId]['params']
-			: ExtractRouteData<Config>[RouteId]['params'] | null,
-		search?: ExtractRouteData<Config>[RouteId]['search']
-	): string => {
-		const pathTemplate = flatRouteConfig[routeId];
+  return <RouteId extends keyof Config>(
+    routeId: RouteId,
+    params?: ExtractRouteData<Config>[RouteId]["search"] extends never
+      ? ExtractRouteData<Config>[RouteId]["params"]
+      : ExtractRouteData<Config>[RouteId]["params"] | null,
+    search?: ExtractRouteData<Config>[RouteId]["search"],
+  ): string => {
+    const pathTemplate = flatRouteConfig[routeId];
 
-		if (isRootPath(pathTemplate)) return '/';
+    if (isRootPath(pathTemplate)) return "/";
 
-		let path: string = pathTemplate;
+    let path: string = pathTemplate;
 
-		path = removeConstrainedArea(path);
+    path = removeConstrainedArea(path);
 
-		path = removeQueryArea(path);
+    path = removeQueryArea(path);
 
-		path = replaceParams(path, params);
+    path = replaceParams(path, params);
 
-		if (search) {
-			const searchParams = createSearchParams(search as unknown as Parameter);
+    if (search) {
+      const searchParams = createSearchParams(search as unknown as Parameter);
 
-			path += `?q=${searchParams}`;
-		}
+      path += `?q=${searchParams}`;
+    }
 
-		return path;
-	};
+    return path;
+  };
 }
 
 export function isRootPath(path: string): boolean {
-	return path === '/';
+  return path === "/";
 }
 
 function removeConstrainedArea(path: string): string {
-	const constraintArea = new RegExp(
-		`${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
-		'g'
-	);
-	return path.replace(constraintArea, '');
+  const constraintArea = new RegExp(
+    `${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
+    "g",
+  );
+  return path.replace(constraintArea, "");
 }
 
 function removeQueryArea(path: string): string {
-	const searchAreaStartIndex = path.indexOf(
-		Symbols.PathSeparater + Symbols.Search
-	);
+  const searchAreaStartIndex = path.indexOf(
+    Symbols.PathSeparater + Symbols.Search,
+  );
 
-	return searchAreaStartIndex > 0 ? path.slice(0, searchAreaStartIndex) : path;
+  return searchAreaStartIndex > 0 ? path.slice(0, searchAreaStartIndex) : path;
 }
 
 function replaceParams(
-	path: string,
-	params: Parameter | undefined | null
+  path: string,
+  params: Parameter | undefined | null,
 ): string {
-	const paramArea = new RegExp(
-		`\\${Symbols.PathSeparater}${Symbols.Param}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
-		'g'
-	);
+  const paramArea = new RegExp(
+    `\\${Symbols.PathSeparater}${Symbols.Param}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
+    "g",
+  );
 
-	return path.replace(paramArea, (_, paramName) => {
-		if (!params) return '';
+  return path.replace(paramArea, (_, paramName) => {
+    if (!params) return "";
 
-		const paramValue = params[paramName];
+    const paramValue = params[paramName];
 
-		return paramValue
-			? Symbols.PathSeparater + encodeURIComponent(paramValue)
-			: '';
-	});
+    return paramValue
+      ? Symbols.PathSeparater + encodeURIComponent(paramValue)
+      : "";
+  });
 }
 
 function createSearchParams(search: Parameter): string {
-	return Object.entries(search)
-		.filter(
-			([_, value]) => value !== '' && value !== undefined && value !== null
-		)
-		.map(([key, value]) => `${key}=${encodeURIComponent(value as string | number)}`)
-		.join('&');
+  return Object.entries(search)
+    .filter(
+      ([_, value]) => value !== "" && value !== undefined && value !== null,
+    )
+    .map(([key, value]) =>
+      `${key}=${encodeURIComponent(value as string | number)}`
+    )
+    .join("&");
 }
