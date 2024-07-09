@@ -3,6 +3,8 @@
 This is a simple link generator that allows you to centrally manage link
 generators.
 
+Details of this package are available at [JSR](https://jsr.io/@kokomi/link-generator).
+
 ## Features
 
 - **Simple**
