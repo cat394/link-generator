@@ -17,6 +17,38 @@ addition, paths can contain special strings called condition fields. This allows
 you to specify the type of the parameter as a string as well as a numeric type
 or a string literal type that is a numeric literal type.
 
+## Install
+
+NPM:
+
+```bash
+npx jsr add @kokomi/link-generator
+```
+
+PNPM:
+
+```bash
+pnpm dlx jsr add @kokomi/link-generator
+```
+
+Deno:
+
+```bash
+deno add @kokomi/link-generator
+```
+
+Yarn:
+
+```bash
+yarn dlx jsr add @kokomi/link-generator
+```
+
+Bun:
+
+```bash
+bunx jsr add @kokomi/link-generator
+```
+
 ## Usage:
 
 1. Defines a route configuration object
