@@ -90,8 +90,8 @@ Example:
 
 3. Generates a link.
 
-The final output from the link generator will be stripped of the `/` before the
-query parameter that was required when defining the path.
+   The final output from the link generator will be stripped of the `/` before the
+   query parameter that was required when defining the path.
 
     ```ts
     const postpage = link(
@@ -162,9 +162,9 @@ Example:
 
 4. link is generated.
 
-You will notice that the userid value is of type string, the postid value is of
-type number, and the categoryid value is of type `'a'|'b'|10` union. You will
-notice that the value of categoryid is a union type of `'a'|'b'|10`.
+   You will notice that the userid value is of type string, the postid value is of
+   type number, and the categoryid value is of type `'a'|'b'|10` union. You will
+   notice that the value of categoryid is a union type of `'a'|'b'|10`.
 
     ```ts
     const userpage = link("users", { userid: "alice" }); // userid only accept string type!
