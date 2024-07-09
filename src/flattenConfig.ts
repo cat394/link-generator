@@ -28,7 +28,7 @@ import type {
  *   }
  * } as const satisfies RouteConfig;
  *
- * const flatConfig = flattenConfig(routeConfig);
+ * const flatRouteConfig = flattenConfig(routeConfig);
  * // => { home: '/', 'users': 'users/:userid', 'users/posts': 'users/:userid/posts/:postid' }
  * ```
  *
