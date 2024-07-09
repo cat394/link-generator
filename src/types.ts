@@ -26,12 +26,14 @@ type RouteConfig = {
  * @param search - The search parameters for the route.
  * @returns The generated link.
  */
-type LinkGenerator<Config extends FlatRouteConfig> = <RouteId extends keyof Config>(
-	routeId: RouteId,
-	params?: ExtractRouteData<Config>[RouteId]['search'] extends never
-		? ExtractRouteData<Config>[RouteId]['params']
-		: ExtractRouteData<Config>[RouteId]['params'] | null,
-	search?: ExtractRouteData<Config>[RouteId]['search']
+type LinkGenerator<Config extends FlatRouteConfig> = <
+  RouteId extends keyof Config,
+>(
+  routeId: RouteId,
+  params?: ExtractRouteData<Config>[RouteId]["search"] extends never
+    ? ExtractRouteData<Config>[RouteId]["params"]
+    : ExtractRouteData<Config>[RouteId]["params"] | null,
+  search?: ExtractRouteData<Config>[RouteId]["search"],
 ) => string;
 
 type FlatRouteConfig = Record<string, string>;
@@ -73,8 +75,9 @@ type ParseUnion<UnionString extends string> = ToNumberIfPossible<
   Split<UnionString, Symbols.UnionSeparater>[number]
 >;
 
-type InferParamType<Constraint extends string> = Constraint extends "number"
-  ? number
+type InferParamType<Constraint extends string> = Constraint extends "string"
+  ? string
+  : Constraint extends "number" ? number
   : Constraint extends `${Symbols.UnionOpen}${infer Union}${Symbols.UnionClose}`
     ? ParseUnion<Union>
   : never;
@@ -86,9 +89,9 @@ type ExtractParams<Segment extends string> = Segment extends
     `${Symbols.Param}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
   : Segment extends `${Symbols.Param}${infer ParamName}${Symbols.OptionalParam}`
-    ? Partial<Record<ParamName, string>>
+    ? Partial<Record<ParamName, string | number>>
   : Segment extends `${Symbols.Param}${infer ParamName}`
-    ? Record<ParamName, string>
+    ? Record<ParamName, string | number>
   : never;
 
 type FindSearchSegment<Segment extends string> = Segment extends
@@ -101,7 +104,7 @@ type ExtractSearch<Segment extends string> = Segment extends
   : Segment extends
     `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<QueryName, InferParamType<Constraint>>
-  : Record<Segment, string>;
+  : Record<Segment, string | number>;
 
 type Params<Path extends string> = ExtractParams<ParseSegment<Path>[number]>;
 
