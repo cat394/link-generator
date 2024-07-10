@@ -107,7 +107,7 @@ prefix the query parameter with `/`!**
 
 Example:
 
-1. Defines a route configuration object
+1. Defines a route configuration object:
 
    ```ts
    const routeConfig = {
@@ -117,13 +117,13 @@ Example:
    } as const satisfies RouteConfig;
    ```
 
-2. Create a link generator.
+2. Create a link generator:
 
    ```ts
    const link = createLinkGenerator(flatRouteConfig);
    ```
 
-3. Generates a link.
+3. Generates a link:
 
    The final output from the link generator will be stripped of the `/` before
    the query parameter that was required when defining the path.
@@ -144,7 +144,7 @@ used to avoid nesting when the same query parameter is taken in both the parent
 and child paths. If the query parameter exists, the second argument of the link
 function will also accept `null`.
 
-Example usage:
+Example:
 
 ```ts
 const routeConfig = {
@@ -153,7 +153,7 @@ const routeConfig = {
   },
 } as const satisfies RouteConfig;
 
-// ... flatten route config
+// ... create a link generator
 
 const productPage = link("products", null, { size: "large" });
 // => '/products?q=size=large'
@@ -165,9 +165,7 @@ When defining an absolute path with a link beginning with a protocol, such as
 `http`, you must prefix it with `*` before the key name of the top-level parent
 element that has it. This distinguishes relative paths from absolute paths.
 
-Example of use:
-
-Define a route configuration object:
+Example:
 
 ```ts
 const routeConfig = {
@@ -181,7 +179,7 @@ const routeConfig = {
   },
 } as const satisfies RouteConfig;
 
-// ... flatten route config
+// ... create a link generator
 
 const youtubeLink = link("external/youtube", { videoid: "123" });
 // => 'https://youtube.com/123'
