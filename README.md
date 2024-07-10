@@ -1,4 +1,4 @@
-![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/master/images/thumbnail.webp)
+![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
 
 # Link Generator
 
@@ -136,6 +136,78 @@ Example:
      { page: 10 },
    );
    // => '/users/alice/posts/1?q=page=10'
+   ```
+
+### Constraint Fields
+
+The type of values for path and query parameters is `string|number` by default.
+While this is sufficient in most cases, this type can be made more strict by
+defining a **constraint field**. This is a special string that can be included
+in the path, like `<Constraint>`. Conditions can be defined within open (`<`)
+and close (`>`) mountain brackets. In this field, the following three type
+constraints can be placed on path and query parameters:
+
+- **String type**
+
+You can narrow down the id to a string type by defining a condition field with
+the string as the condition followed by the parameter name, such as
+`/:id<string>`.
+
+- **Numumber type**
+
+You can narrow down the id to a number type by defining a condition field with a
+parameter name followed by the string number, as in `/:id<number>`.
+
+- **String or Number literal union type**
+
+You can create a literal type for those values by writing `(Literal|Union)` for
+the condition followed by the parameter and separated by the `|` sign, as in
+`/id<(a|b|10)>`. If the value can be converted to a numeric value, it is
+inferred as a numeric literal type. To define the query parameter for a route,
+add a `query` property to the route configuration object. The query property
+should be an object with keys as query parameter names and values as types.
+
+Example:
+
+1. Define a route configuration object with condition fields defined in the
+   path.
+
+   ```ts
+   const routeConfig = {
+     users: {
+       path: "users/:userid<string>",
+     },
+     posts: {
+       path: "posts/:postid<number>",
+     },
+     categories: {
+       path: " categories/:categoryid<(a|b|10)>",
+     },
+   } as const satisfies RouteConfig;
+   ```
+
+2. Flattens the routing object
+
+   ```ts
+   const flatRouteConfig = flattenRouteConfig(routeConfig);
+   ```
+
+3. Create a link generator.
+
+   ```ts
+   const link = createLinkGenerator(flatRouteConfig);
+   ```
+
+4. link is generated.
+
+   You will notice that the userid value is of type string, the postid value is
+   of type number, and the categoryid value is of type `'a'|'b'|10` union. You
+   will notice that the value of categoryid is a union type of `'a'|'b'|10`.
+
+   ```ts
+   const userpage = link("users", { userid: "alice" }); // userid only accept string type!
+   const postpage = link("posts", { postid: 1 }); // postid only accept number type!
+   const categorypage = link("categories", { categoryid: "a" }); // categoryid only accept 'a' or 'b' or 10!
    ```
 
 ### Optional Type
