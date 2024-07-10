@@ -5,7 +5,8 @@
 This is a simple link generator that allows you to centrally manage link
 generators.
 
-Details of this package are available at [JSR](https://jsr.io/@kokomi/link-generator).
+Details of this package are available at
+[JSR](https://jsr.io/@kokomi/link-generator).
 
 ## Features
 
@@ -136,6 +137,7 @@ Example:
    );
    // => '/users/alice/posts/1?q=page=10'
    ```
+
 ### Optional Type
 
 When a path parameter or query parameter value is set to `null` or `undefined`,
