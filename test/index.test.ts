@@ -100,7 +100,7 @@ describe("generator function test", () => {
     });
 
     it("single param is setted", () => {
-      assertEquals("/users/alice", link("users/posts", { userid: "alice" }));
+      assertEquals("/users/alice/posts", link("users/posts", { userid: "alice" }));
     });
   });
 
@@ -139,7 +139,7 @@ describe("generator function test", () => {
 
     it("numeric search param is setted", () => {
       assertEquals(
-        "/products?q=color=red",
+        "/products?q=size=10",
         link("products", null, { size: 10 }),
       );
     });
