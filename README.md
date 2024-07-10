@@ -130,11 +130,7 @@ Example:
    the query parameter that was required when defining the path.
 
    ```ts
-   const postpage = link(
-     "users/posts",
-     { userid: "alice", postid: "1" },
-     { page: 10 },
-   );
+   const postpage = link("posts", { postid: "1" }, { page: 10 });
    // => '/users/alice/posts/1?q=page=10'
    ```
 
