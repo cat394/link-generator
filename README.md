@@ -100,9 +100,9 @@ bunx jsr add @kokomi/link-generator
 
 ## Advanced Topics
 
-### Query Parameters
+### Search Parameters
 
-To define the query parameter field, write the path like this **Remember to
+To define the search parameter field, write the path like this **Remember to
 prefix the query parameter with `/`!**
 
 Example:
