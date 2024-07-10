@@ -232,7 +232,7 @@ const productPage = link("products", null, { size: "large" });
 ### Absolute Path
 
 When defining an absolute path with a link beginning with a protocol, such as
-`http`, you must prefix it with `*` before the key name of the top-level parent
+`https`, you must prefix it with `*` before the key name of the top-level parent
 element that has it. This distinguishes relative paths from absolute paths.
 
 Example:
@@ -251,7 +251,7 @@ const routeConfig = {
 
 // ... create a link generator
 
-const youtubeLink = link("external/youtube", { videoid: "123" });
+const youtubeLink = link("*external/youtube", { videoid: "123" });
 // => 'https://youtube.com/123'
 ```
 
