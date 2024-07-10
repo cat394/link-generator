@@ -1,0 +1,32 @@
+name: Deno Tests
+
+on:
+  push:
+    branches: 
+      - main
+
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Deno v1.x
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Check formatted
+        run: deno fmt --check
+
+      - name: Check lint error
+        run: deno lint
+
+      - name: Test Module
+        run: deno test
