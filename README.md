@@ -177,7 +177,7 @@ Example:
        path: "posts/:postid<number>",
      },
      categories: {
-       path: " categories/:categoryid<(a|b|10)>",
+       path: "categories/:categoryid<(a|b|10)>",
      },
    } as const satisfies RouteConfig;
    ```
