@@ -100,7 +100,10 @@ describe("generator function test", () => {
     });
 
     it("single param is setted", () => {
-      assertEquals("/users/alice/posts", link("users/posts", { userid: "alice" }));
+      assertEquals(
+        "/users/alice/posts",
+        link("users/posts", { userid: "alice" }),
+      );
     });
   });
 
