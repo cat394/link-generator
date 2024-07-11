@@ -59,7 +59,6 @@ type ParameterIsNullable = undefined | null;
 /**
  * Represents a value that a parameter can accept.
  */
-
 type DefaultParameterType = string | number | boolean;
 
 type ParameterAcceptValue = DefaultParameterType | ParameterIsNullable;
