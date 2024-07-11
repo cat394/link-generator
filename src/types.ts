@@ -125,7 +125,7 @@ type Search<Path extends string> = ExtractSearch<
  */
 type ExtractRouteData<FlatRoute extends FlatRouteConfig> = {
   [RouteId in keyof FlatRoute]: {
-    path: string;
+    path: RouteId;
     params: Params<FlatRoute[RouteId]>;
     search: Search<FlatRoute[RouteId]>;
   };
