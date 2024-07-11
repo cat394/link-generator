@@ -1,8 +1,10 @@
 ![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
 
-> 🚧 Currently, due to a bug in the JSR, it is not possible to update the package!!
-> So, although some of the new features I added are not available, version 1.2 does not have any major flaws. 
-> The only difference from version 1.3 onwards is that type errors will no longer occur if you use a boolean parameter.
+> 🚧 Currently, due to a bug in the JSR, it is not possible to update the
+> package!! So, although some of the new features I added are not available,
+> version 1.2 does not have any major flaws. The only difference from version
+> 1.3 onwards is that type errors will no longer occur if you use a boolean
+> parameter.
 
 # Link Generator
 
@@ -140,11 +142,11 @@ Example:
 
 ### Constraint Fields
 
-The type of values for path and query parameters is `string|number` by
-default. While this is sufficient in most cases, this type can be made more
-strict by defining a **constraint field**. This is a special string that can be
-included in the path, like `<Constraint>`. Conditions can be defined within open
-(`<`) and close (`>`) mountain brackets. In this field, the following three type
+The type of values for path and query parameters is `string|number` by default.
+While this is sufficient in most cases, this type can be made more strict by
+defining a **constraint field**. This is a special string that can be included
+in the path, like `<Constraint>`. Conditions can be defined within open (`<`)
+and close (`>`) mountain brackets. In this field, the following three type
 constraints can be placed on path and query parameters:
 
 - **String type**

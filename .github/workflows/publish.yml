@@ -22,5 +22,5 @@ jobs:
         with:
           deno-version: v1.x
 
-      - name: Publish package
-        run: npx jsr publish
+      # - name: Publish package
+      #   run: npx jsr publish
