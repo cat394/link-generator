@@ -1,5 +1,9 @@
 ![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
 
+> 🚧 Currently, due to a bug in the JSR, it is not possible to update the package!!
+> So, although some of the new features I added are not available, version 1.2 does not have any major flaws. 
+> The only difference from version 1.3 onwards is that type errors will no longer occur if you use a boolean parameter.
+
 # Link Generator
 
 This is a simple link generator that allows you to centrally manage link
@@ -136,7 +140,7 @@ Example:
 
 ### Constraint Fields
 
-The type of values for path and query parameters is `string|number|boolean` by
+The type of values for path and query parameters is `string|number` by
 default. While this is sufficient in most cases, this type can be made more
 strict by defining a **constraint field**. This is a special string that can be
 included in the path, like `<Constraint>`. Conditions can be defined within open
@@ -153,10 +157,10 @@ parameter name followed by the string `string`, as in `/:id<number>`.
 You can narrow down the id to a number type by defining a condition field with a
 parameter name followed by the string `number`, as in `/:id<number>`.
 
-- **Boolean type**
+<!-- - **Boolean type**
 
 You can narrow down the id to a boolean type by defining a condition field with
-a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
+a parameter name followed by the string `boolean`, as in `/:id<boolean>`. -->
 
 - **String or Number literal union type**
 
@@ -179,9 +183,6 @@ Example:
      },
      posts: {
        path: "posts/:postid<number>",
-     },
-     news: {
-       path: "news/?q=is_archived<boolean>",
      },
      categories: {
        path: "categories/:categoryid<(a|b|10)>",
@@ -210,7 +211,6 @@ Example:
    ```ts
    const userpage = link("users", { userid: "alice" }); // userid only accept string type!
    const postpage = link("posts", { postid: 1 }); // postid only accept number type!
-   const newspage = link("news", null, { is_archived: true }); // is_archived query parameter accept boolean type!
    const categorypage = link("categories", { categoryid: "a" }); // categoryid only accept 'a' or 'b' or 10!
    ```
 
