@@ -1,4 +1,5 @@
 import type {
+  DefaultParameterType,
   ExtractRouteData,
   FlatRouteConfig,
   LinkGenerator,
@@ -120,7 +121,7 @@ function createSearchParams(search: Parameter): string {
       ([_, value]) => value !== "" && value !== undefined && value !== null,
     )
     .map(([key, value]) =>
-      `${key}=${encodeURIComponent(value as string | number)}`
+      `${key}=${encodeURIComponent(value as DefaultParameterType)}`
     )
     .join("&");
 }
