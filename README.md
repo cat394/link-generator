@@ -5,7 +5,7 @@
 This is a simple link generator that allows you to centrally manage link
 generators.
 
-Details of this package are available at
+This is distributed through a package registry called
 [JSR](https://jsr.io/@kokomi/link-generator).
 
 ## Features
@@ -146,7 +146,7 @@ constraints can be placed on path and query parameters:
 - **String type**
 
 You can narrow down the id to a string type by defining a condition field with a
-parameter name followed by the string `string`, as in `/:id<number>`.
+parameter name followed by the string `string`, as in `/:id<string>`.
 
 - **Numumber type**
 
@@ -261,6 +261,39 @@ const routeConfig = {
 
 const youtubeLink = link("*external/youtube", { videoid: "123" });
 // => 'https://youtube.com/123'
+```
+
+## Route data Type
+
+To extract the params and query of each route, use the `ExtractRouteData` type
+as shown below.
+
+```ts
+const routeConfig = {
+  users: {
+    path: "users/:userid",
+  },
+  news: {
+    path: "news/?q=is_archived<boolean>",
+  },
+};
+
+const flatRouteConfig = flattenRouteConfig(routeConfig);
+
+type RouteData = ExtractRouteData<typeof flatRouteConfig>;
+// ^
+// {
+//     users: {
+//         path: string;
+//         params: Record<"userid", DefaultParameterType>;
+//         search: never;
+//     };
+//     news: {
+//         path: string;
+//         params: never;
+//         search: Record<"is_archived", boolean>;
+//     };
+// }
 ```
 
 ## Acknowledgements
