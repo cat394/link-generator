@@ -1,4 +1,5 @@
 name: Publish
+
 on:
   push:
     branches:
@@ -7,13 +8,15 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      id-token: write
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && success() }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Deno v1.x
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
 
       - name: Publish package
         run: npx jsr publish
