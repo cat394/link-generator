@@ -22,7 +22,7 @@ jobs:
         with:
           deno-version: v1.x
 
-      - name: Check formatted
+      - name: Check format
         run: deno fmt --check
 
       - name: Check lint error
