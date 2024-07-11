@@ -25,6 +25,9 @@ const routeConfig = {
   posts: {
     path: "posts/:postid<number>",
   },
+  news: {
+    path: "news/?q=is_archived<boolean>",
+  },
   books: {
     path: "books/:bookid?/?q=author?&genre?",
   },
@@ -53,6 +56,7 @@ const flatResult = {
   "users/posts": "/users/:userid/posts/:postid<number>",
   dashboard: "/dashboard/projects/:projectid<string>",
   posts: "/posts/:postid<number>",
+  news: "/news/?q=is_archived<boolean>",
   orders: "/orders/:orderid?",
   categories: "/categories/:categoryid<(a|b|c)>",
   products: "/products/?q=size<(small|medium|10)>&color",
@@ -80,15 +84,22 @@ describe("generator function test", () => {
     assertEquals("/users/alice", link("users", { userid: "alice" }));
   });
 
-  it("with string params", () => {
+  it("with string param", () => {
     assertEquals(
       "/dashboard/projects/a",
       link("dashboard", { projectid: "a" }),
     );
   });
 
-  it("with numeric params", () => {
+  it("with numeric param", () => {
     assertEquals("/posts/1", link("posts", { postid: 1 }));
+  });
+
+  it("with boolean param", () => {
+    assertEquals(
+      "/news?q=is_archived=true",
+      link("news", null, { is_archived: true }),
+    );
   });
 
   describe("nested route", () => {

@@ -67,6 +67,8 @@ type ParameterAcceptValue = string | number | ParameterIsNullable;
  */
 type Parameter = Record<string, ParameterAcceptValue>;
 
+type DefaultParamType = string | number | boolean;
+
 type ToNumberIfPossible<UnionSegment extends string> = UnionSegment extends
   `${infer NumericString extends number}` ? NumericString
   : UnionSegment;
@@ -78,6 +80,7 @@ type ParseUnion<UnionString extends string> = ToNumberIfPossible<
 type InferParamType<Constraint extends string> = Constraint extends "string"
   ? string
   : Constraint extends "number" ? number
+  : Constraint extends "boolean" ? boolean
   : Constraint extends `${Symbols.UnionOpen}${infer Union}${Symbols.UnionClose}`
     ? ParseUnion<Union>
   : never;
@@ -89,9 +92,9 @@ type ExtractParams<Segment extends string> = Segment extends
     `${Symbols.Param}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
   : Segment extends `${Symbols.Param}${infer ParamName}${Symbols.OptionalParam}`
-    ? Partial<Record<ParamName, string | number>>
+    ? Partial<Record<ParamName, DefaultParamType>>
   : Segment extends `${Symbols.Param}${infer ParamName}`
-    ? Record<ParamName, string | number>
+    ? Record<ParamName, DefaultParamType>
   : never;
 
 type FindSearchSegment<Segment extends string> = Segment extends
@@ -105,8 +108,8 @@ type ExtractSearch<Segment extends string> = Segment extends
     `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<QueryName, InferParamType<Constraint>>
   : Segment extends `${infer QueryName}${Symbols.OptionalParam}`
-    ? Partial<Record<QueryName, string | number>>
-  : Segment extends `${infer QueryName}` ? Record<QueryName, string | number>
+    ? Partial<Record<QueryName, DefaultParamType>>
+  : Segment extends `${infer QueryName}` ? Record<QueryName, DefaultParamType>
   : never;
 
 type Params<Path extends string> = ExtractParams<ParseSegment<Path>[number]>;
@@ -204,6 +207,7 @@ type FlattenRouteConfig<
   : never;
 
 export type {
+  DefaultParamType,
   ExtractRouteData,
   FlatRouteConfig,
   FlattenRouteConfig,
