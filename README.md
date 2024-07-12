@@ -284,12 +284,12 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // ^
 // {
 //     users: {
-//         path: string;
+//         path: "users/:userid";
 //         params: Record<"userid", DefaultParameterType>;
 //         search: never;
 //     };
 //     news: {
-//         path: string;
+//         path: "news/?q=is_archived<boolean>";
 //         params: never;
 //         search: Record<"is_archived", boolean>;
 //     };
