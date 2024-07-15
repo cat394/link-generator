@@ -69,12 +69,17 @@ type ParameterAcceptValue = DefaultParameterType | ParameterIsNullable;
  */
 type Parameter = Record<string, ParameterAcceptValue>;
 
-type ToNumberIfPossible<UnionSegment extends string> = UnionSegment extends
+type StringToBoolean<UnionSegment extends string> = UnionSegment extends "true"
+  ? true
+  : UnionSegment extends "false" ? false
+  : UnionSegment;
+
+type StringToNumber<UnionSegment extends string> = UnionSegment extends
   `${infer NumericString extends number}` ? NumericString
   : UnionSegment;
 
-type ParseUnion<UnionString extends string> = ToNumberIfPossible<
-  Split<UnionString, Symbols.UnionSeparater>[number]
+type ParseUnion<UnionString extends string> = StringToBoolean<
+  StringToNumber<Split<UnionString, Symbols.UnionSeparater>[number]>
 >;
 
 type InferParamType<Constraint extends string> = Constraint extends "string"

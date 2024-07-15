@@ -38,7 +38,7 @@ const routeConfig = {
     path: "categories/:categoryid<(a|b|c)>",
   },
   products: {
-    path: "products/?q=size<(small|medium|10)>&color",
+    path: "products/?q=size<(small|10|false)>&color",
   },
   "*external": {
     path: "https://",
@@ -59,7 +59,7 @@ const flatResult = {
   news: "/news/?q=is_archived<boolean>",
   orders: "/orders/:orderid?",
   categories: "/categories/:categoryid<(a|b|c)>",
-  products: "/products/?q=size<(small|medium|10)>&color",
+  products: "/products/?q=size<(small|10|false)>&color",
   books: "/books/:bookid?/?q=author?&genre?",
   "*external": "https://",
   "*external/x": "https://x.com/:username",
@@ -152,9 +152,13 @@ describe("generator function test", () => {
     });
 
     it("numeric search param is setted", () => {
+      assertEquals("/products?q=size=10", link("products", null, { size: 10 }));
+    });
+
+    it("boolean search param is setted", () => {
       assertEquals(
-        "/products?q=size=10",
-        link("products", null, { size: 10 }),
+        "/products?q=size=false",
+        link("products", null, { size: false }),
       );
     });
 
