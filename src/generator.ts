@@ -68,7 +68,7 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
       const searchParams = createSearchParams(search as unknown as Parameter);
 
       // If all search parameters are undefined, no query parameters are added.
-      searchParams ? path += `?q=${searchParams}` : "";
+      searchParams ? path += `?${searchParams}` : "";
     }
 
     return path;

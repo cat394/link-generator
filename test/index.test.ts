@@ -26,10 +26,7 @@ const routeConfig = {
     path: "posts/:postid<number>",
   },
   news: {
-    path: "news/?q=is_archived<boolean>",
-  },
-  books: {
-    path: "books/:bookid?/?q=author?&genre?",
+    path: "news/?is_archived<boolean>",
   },
   orders: {
     path: "orders/:orderid?",
@@ -38,7 +35,10 @@ const routeConfig = {
     path: "categories/:categoryid<(a|b|c)>",
   },
   products: {
-    path: "products/?q=size<(small|10|false)>&color",
+    path: "products/search/?size<(small|10|false)>&color",
+  },
+  books: {
+    path: "books/search/?genre?&author?"
   },
   "*external": {
     path: "https://",
@@ -56,11 +56,11 @@ const flatResult = {
   "users/posts": "/users/:userid/posts/:postid<number>",
   dashboard: "/dashboard/projects/:projectid<string>",
   posts: "/posts/:postid<number>",
-  news: "/news/?q=is_archived<boolean>",
+  news: "/news/?is_archived<boolean>",
   orders: "/orders/:orderid?",
   categories: "/categories/:categoryid<(a|b|c)>",
-  products: "/products/?q=size<(small|10|false)>&color",
-  books: "/books/:bookid?/?q=author?&genre?",
+  products: "/products/search/?size<(small|10|false)>&color",
+  books: '/books/search/?genre?&author?',
   "*external": "https://",
   "*external/x": "https://x.com/:username",
 } as const satisfies FlattenRouteConfig<typeof routeConfig>;
@@ -97,7 +97,7 @@ describe("generator function test", () => {
 
   it("with boolean param", () => {
     assertEquals(
-      "/news?q=is_archived=true",
+      "/news?is_archived=true",
       link("news", null, { is_archived: true }),
     );
   });
@@ -139,20 +139,20 @@ describe("generator function test", () => {
   describe("with query params", () => {
     it("skip param filed", () => {
       assertEquals(
-        "/products?q=size=small&color=red",
+        "/products/search?size=small&color=red",
         link("products", null, { size: "small", color: "red" }),
       );
     });
 
     it("string search param is setted", () => {
       assertEquals(
-        "/products?q=color=red",
+        "/products/search?color=red",
         link("products", null, { color: "red" }),
       );
     });
 
     it("numeric search param is setted", () => {
-      assertEquals("/products?q=size=10", link("products", null, { size: 10 }));
+      assertEquals("/products/search?size=10", link("products", null, { size: 10 }));
     });
 
     it("boolean search param is setted", () => {
