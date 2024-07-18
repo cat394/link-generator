@@ -41,7 +41,7 @@ const routeConfig = {
     path: "books/search/?genre?&author?",
   },
   video: {
-    path: "video/watch/?q<string>"
+    path: "video/watch/?q<string>",
   },
   "*external": {
     path: "https://",
@@ -177,8 +177,8 @@ describe("generator function test", () => {
     });
 
     it("q search param is setted", () => {
-      assertEquals('/video/watch?q=123', link("video", null, { q: "123"}))
-    })
+      assertEquals("/video/watch?q=123", link("video", null, { q: "123" }));
+    });
   });
 
   it("external link", () => {
