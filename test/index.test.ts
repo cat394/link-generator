@@ -40,6 +40,9 @@ const routeConfig = {
   books: {
     path: "books/search/?genre?&author?",
   },
+  video: {
+    path: "video/watch/?q<string>"
+  },
   "*external": {
     path: "https://",
     children: {
@@ -60,6 +63,7 @@ const flatResult = {
   orders: "/orders/:orderid?",
   categories: "/categories/:categoryid<(a|b|c)>",
   products: "/products/search/?size<(small|10|false)>&color",
+  video: "/video/watch/?q<string>",
   books: "/books/search/?genre?&author?",
   "*external": "https://",
   "*external/x": "https://x.com/:username",
@@ -160,7 +164,7 @@ describe("generator function test", () => {
 
     it("boolean search param is setted", () => {
       assertEquals(
-        "/products/search?q=size=false",
+        "/products/search?size=false",
         link("products", null, { size: false }),
       );
     });
@@ -171,6 +175,10 @@ describe("generator function test", () => {
         link("books", null, { genre: undefined, author: undefined }),
       );
     });
+
+    it("q search param is setted", () => {
+      assertEquals('/video/watch?q=123', link("video", null, { q: "123"}))
+    })
   });
 
   it("external link", () => {
