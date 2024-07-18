@@ -164,7 +164,7 @@ describe("generator function test", () => {
 
     it("all search params are undefined", () => {
       assertEquals(
-        "/books",
+        "/books/search",
         link("books", null, { genre: undefined, author: undefined }),
       );
     });
