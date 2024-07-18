@@ -160,7 +160,7 @@ describe("generator function test", () => {
 
     it("boolean search param is setted", () => {
       assertEquals(
-        "/products?q=size=false",
+        "/products/search?q=size=false",
         link("products", null, { size: false }),
       );
     });
