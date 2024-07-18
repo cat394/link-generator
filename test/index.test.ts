@@ -38,7 +38,7 @@ const routeConfig = {
     path: "products/search/?size<(small|10|false)>&color",
   },
   books: {
-    path: "books/search/?genre?&author?"
+    path: "books/search/?genre?&author?",
   },
   "*external": {
     path: "https://",
@@ -60,7 +60,7 @@ const flatResult = {
   orders: "/orders/:orderid?",
   categories: "/categories/:categoryid<(a|b|c)>",
   products: "/products/search/?size<(small|10|false)>&color",
-  books: '/books/search/?genre?&author?',
+  books: "/books/search/?genre?&author?",
   "*external": "https://",
   "*external/x": "https://x.com/:username",
 } as const satisfies FlattenRouteConfig<typeof routeConfig>;
@@ -152,7 +152,10 @@ describe("generator function test", () => {
     });
 
     it("numeric search param is setted", () => {
-      assertEquals("/products/search?size=10", link("products", null, { size: 10 }));
+      assertEquals(
+        "/products/search?size=10",
+        link("products", null, { size: 10 }),
+      );
     });
 
     it("boolean search param is setted", () => {
