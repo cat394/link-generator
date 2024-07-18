@@ -113,7 +113,7 @@ Example:
    ```ts
    const routeConfig = {
      posts: {
-       path: "posts/:postid/?q=page",
+       path: "posts/:postid/?page",
      },
    } as const satisfies RouteConfig;
    ```
@@ -131,7 +131,7 @@ Example:
 
    ```ts
    const postpage = link("posts", { postid: "1" }, { page: 10 });
-   // => '/users/alice/posts/1?q=page=10'
+   // => '/users/alice/posts/1?page=10'
    ```
 
 ### Constraint Fields
