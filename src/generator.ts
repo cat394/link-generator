@@ -18,10 +18,10 @@ import { Symbols } from "./symbols.ts";
  * 			path: '/'
  * 		},
  * 		'users': {
- * 			path: 'users/:userid',
+ * 			path: '/users/:userid',
  * 				children: {
  * 					posts: {
- * 						path: 'posts/:postid?q=page<number>'
+ * 						path: '/posts/:postid?q=page<number>'
  * 					}
  * 				}
  * 		},
@@ -58,9 +58,9 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
 
     let path: string = pathTemplate;
 
-    path = removeConstrainedArea(path);
-
     path = removeQueryArea(path);
+
+    path = removeConstrainedArea(path);
 
     path = replaceParams(path, params);
 
@@ -68,7 +68,7 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
       const searchParams = createSearchParams(search as unknown as Parameter);
 
       // If all search parameters are undefined, no query parameters are added.
-      searchParams ? path += `?${searchParams}` : "";
+      searchParams ? (path += `?${searchParams}`) : "";
     }
 
     return path;
@@ -79,20 +79,22 @@ function isRootPath(path: string): boolean {
   return path === "/";
 }
 
+function removeQueryArea(path: string): string {
+  const searchAreaStartIndex = path.indexOf(
+    Symbols.PathSeparater + Symbols.Search,
+  );
+
+  const isExistSearchArea = searchAreaStartIndex > 0;
+
+  return isExistSearchArea ? path.slice(0, searchAreaStartIndex) : path;
+}
+
 function removeConstrainedArea(path: string): string {
   const constraintArea = new RegExp(
     `${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
     "g",
   );
   return path.replace(constraintArea, "");
-}
-
-function removeQueryArea(path: string): string {
-  const searchAreaStartIndex = path.indexOf(
-    Symbols.PathSeparater + Symbols.Search,
-  );
-
-  return searchAreaStartIndex > 0 ? path.slice(0, searchAreaStartIndex) : path;
 }
 
 function replaceParams(
@@ -120,8 +122,9 @@ function createSearchParams(search: Parameter): string {
     .filter(
       ([_, value]) => value !== "" && value !== undefined && value !== null,
     )
-    .map(([key, value]) =>
-      `${key}=${encodeURIComponent(value as DefaultParameterType)}`
+    .map(
+      ([key, value]) =>
+        `${key}=${encodeURIComponent(value as DefaultParameterType)}`,
     )
     .join("&");
 }

@@ -9,5 +9,4 @@ export enum Symbols {
   UnionOpen = "(",
   UnionClose = ")",
   UnionSeparater = "|",
-  AbsoluteRoute = "*",
 }

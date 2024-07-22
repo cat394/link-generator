@@ -162,53 +162,15 @@ type PrependPathSeparator<Path extends string> = Path extends
  * Flattens a route configuration into a single-level object.
  * Each key is a route ID, and each value is the corresponding flattened path.
  */
-type FlattenRouteConfig<
-  Config,
-  ParentPath extends string = "",
-> = Config extends RouteConfig ? {
+type FlattenRouteConfig<Config, ParentPath extends string = ""> = Config extends
+  RouteConfig ? {
     [RouteId in NestedKeys<Config>]: RouteId extends
-      `${infer ParentRouteId}${Symbols.PathSeparater}${infer ChildrenRouteId}`
-      // Is path top level?
-      ? ParentRouteId extends keyof Config
-        // Has children?
-        ? ChildrenRouteId extends NestedKeys<
-          Config[ParentRouteId]["children"]
-        >
-          // Is absolute route?
-          ? ParentRouteId extends `${Symbols.AbsoluteRoute}${infer Rest}`
-            // Is protocol scheme in the form /PROTOCOL:/DOMAIN...?
-            ? PrependPathSeparator<
-              RemoveDuplicatePathSeparator<
-                `${ParentPath}${Symbols.PathSeparater}${FlattenRouteConfig<
-                  Config[ParentRouteId]["children"],
-                  Config[ParentRouteId]["path"]
-                >[ChildrenRouteId]}`
-              >
-            > extends `${Symbols.PathSeparater}${infer Protocol}:/${infer Rest}`
-              ? `${Protocol}://${Rest}`
-            : never
-          : PrependPathSeparator<
-            RemoveDuplicatePathSeparator<
-              `${ParentPath}${Symbols.PathSeparater}${FlattenRouteConfig<
-                Config[ParentRouteId]["children"],
-                Config[ParentRouteId]["path"]
-              >[ChildrenRouteId]}`
-            >
-          >
-        : never
-      : never
-      : RouteId extends keyof Config
-      // Is path root?
-        ? Config[RouteId]["path"] extends Symbols.PathSeparater ? "/"
-          // Is top absolute route?
-        : RouteId extends `${Symbols.AbsoluteRoute}${infer Rest}`
-          ? Config[RouteId]["path"]
-        : PrependPathSeparator<
-          RemoveDuplicatePathSeparator<
-            `${ParentPath}${Symbols.PathSeparater}${Config[RouteId]["path"]}`
-          >
-        >
-      : never;
+      `${infer ParentRouteId}${typeof Symbols.PathSeparater}${infer ChildrenRouteId}`
+      ? FlattenRouteConfig<
+        Config[ParentRouteId]["children"],
+        `${ParentPath}${Config[ParentRouteId]["path"]}`
+      >[ChildrenRouteId]
+      : `${ParentPath}${Config[RouteId]["path"]}`;
   }
   : never;
 

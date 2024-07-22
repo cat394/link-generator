@@ -19,17 +19,17 @@ import type {
  *     path: '/'
  *   },
  *   'users': {
- *     path: 'users/:userid',
+ *     path: '/users/:userid',
  *     children: {
  *       posts: {
- *         path: 'posts/:postid'
+ *         path: '/posts/:postid'
  *       }
  *     }
  *   }
  * } as const satisfies RouteConfig;
  *
  * const flatRouteConfig = flattenConfig(routeConfig);
- * // => { home: '/', 'users': 'users/:userid', 'users/posts': 'users/:userid/posts/:postid' }
+ * // => { home: '/', 'users': '/users/:userid', 'users/posts': '/users/:userid/posts/:postid' }
  * ```
  *
  * @param routeConfig - The route configuration to flatten.
@@ -46,13 +46,7 @@ export function flattenRouteConfig<Config extends RouteConfig>(
     const route = routeConfig[parentRouteId];
     const currentPath = route.path;
 
-    let fullPath = parentPath +
-      (currentPath.startsWith(Symbols.PathSeparater)
-        ? ""
-        : Symbols.PathSeparater) +
-      currentPath;
-
-    fullPath = removeExtraSeparatorsFromProtocolField(parentRouteId, fullPath);
+    const fullPath = parentPath + currentPath;
 
     result[parentRouteId] = fullPath;
 
@@ -63,38 +57,9 @@ export function flattenRouteConfig<Config extends RouteConfig>(
         const childFullRouteId =
           `${parentRouteId}${Symbols.PathSeparater}${childRouteId}`;
 
-        result[childFullRouteId] = removeExtraSeparatorFromAfterProtocol(
-          children[childRouteId],
-        );
+        result[childFullRouteId] = children[childRouteId];
       }
     }
   }
   return result as FlattenRouteConfig<Config>;
-}
-
-function isAbsoluteRoute(routeId: string): boolean {
-  return routeId.startsWith(Symbols.AbsoluteRoute);
-}
-
-function removeExtraSeparatorsFromProtocolField(
-  routeId: string,
-  path: string,
-): string {
-  if (isAbsoluteRoute(routeId)) {
-    return removeExtraSeparatorFromBeforeProtocol(path);
-  } else {
-    return removeExtraSeparatorFromAfterProtocol(path);
-  }
-}
-
-function removeExtraSeparatorFromBeforeProtocol(path: string): string {
-  return path.slice(Symbols.PathSeparater.length);
-}
-
-function removeExtraSeparatorFromAfterProtocol(path: string): string {
-  const protocolArea = new RegExp(
-    `(?<protocol>[a-zA-Z]+:)\\${Symbols.PathSeparater}(?=\\/\\/)`,
-  );
-
-  return path.replace(protocolArea, (_, protocol) => protocol);
 }

@@ -12,38 +12,38 @@ const routeConfig = {
     path: "/",
   },
   users: {
-    path: "users/:userid",
+    path: "/users/:userid",
     children: {
       posts: {
-        path: "posts/:postid<number>",
+        path: "/posts/:postid<number>",
       },
     },
   },
   dashboard: {
-    path: "dashboard/projects/:projectid<string>",
+    path: "/dashboard/projects/:projectid<string>",
   },
   posts: {
-    path: "posts/:postid<number>",
+    path: "/posts/:postid<number>",
   },
   news: {
-    path: "news/?is_archived<boolean>",
+    path: "/news/?is_archived<boolean>",
   },
   orders: {
-    path: "orders/:orderid?",
+    path: "/orders/:orderid?",
   },
   categories: {
-    path: "categories/:categoryid<(a|b|c)>",
+    path: "/categories/:categoryid<(a|b|c)>",
   },
   products: {
-    path: "products/search/?size<(small|10|false)>&color",
+    path: "/products/search/?size<(small|10|false)>&color",
   },
   books: {
-    path: "books/search/?genre?&author?",
+    path: "/books/search/?genre?&author?",
   },
   video: {
-    path: "video/watch/?q<string>",
+    path: "/video/watch/?q<string>",
   },
-  "*external": {
+  external: {
     path: "https://",
     children: {
       x: {
@@ -65,8 +65,8 @@ const flatResult = {
   products: "/products/search/?size<(small|10|false)>&color",
   video: "/video/watch/?q<string>",
   books: "/books/search/?genre?&author?",
-  "*external": "https://",
-  "*external/x": "https://x.com/:username",
+  "external": "https://",
+  "external/x": "https://x.com/:username",
 } as const satisfies FlattenRouteConfig<typeof routeConfig>;
 
 Deno.test("flatten config function test", () => {
@@ -184,7 +184,7 @@ describe("generator function test", () => {
   it("external link", () => {
     assertEquals(
       "https://x.com/alice",
-      link("*external/x", { username: "alice" }),
+      link("external/x", { username: "alice" }),
     );
   });
 });
