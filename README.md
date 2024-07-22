@@ -64,10 +64,10 @@ bunx jsr add @kokomi/link-generator
        path: "/",
      },
      users: {
-       path: "users/:userid",
+       path: "/users/:userid",
        children: {
          posts: {
-           path: "posts/:postid",
+           path: "/posts/:postid",
          },
        },
      },
@@ -113,7 +113,7 @@ Example:
    ```ts
    const routeConfig = {
      posts: {
-       path: "posts/:postid/?page",
+       path: "/posts/:postid/?page",
      },
    } as const satisfies RouteConfig;
    ```
@@ -175,16 +175,16 @@ Example:
    ```ts
    const routeConfig = {
      users: {
-       path: "users/:userid<string>",
+       path: "/users/:userid<string>",
      },
      posts: {
-       path: "posts/:postid<number>",
+       path: "/posts/:postid<number>",
      },
      news: {
-       path: "news/?q=is_archived<boolean>",
+       path: "/news/?q=is_archived<boolean>",
      },
      categories: {
-       path: "categories/:categoryid<(a|10|false)>",
+       path: "/categories/:categoryid<(a|10|false)>",
      },
    } as const satisfies RouteConfig;
    ```
@@ -229,7 +229,7 @@ Example:
 ```ts
 const routeConfig = {
   products: {
-    path: "products/:productid?/?q=size&color",
+    path: "/products/:productid?/?q=size&color",
   },
 } as const satisfies RouteConfig;
 
@@ -241,15 +241,15 @@ const productPage = link("products", null, { size: "large" });
 
 ### Absolute Path
 
-When defining an absolute path with a link beginning with a protocol, such as
-`https`, you must prefix it with `*` before the key name of the top-level parent
-element that has it. This distinguishes relative paths from absolute paths.
+Starting with version 3.0.0, absolute paths are resolved in a similar manner to
+relative paths, which means that the `*` prefix that was previously required
+when defining an absolute path is no longer necessary.
 
 Example:
 
 ```ts
 const routeConfig = {
-  "*external": {
+  "external": {
     path: "https://",
     children: {
       youtube: {
