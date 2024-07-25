@@ -1,10 +1,6 @@
 import { removeQueryArea } from "./generator.ts";
 import { Symbols } from "./symbols.ts";
-import type {
-  FlatRouteConfig,
-  FormatRouteConfig,
-  RouteConfig,
-} from "./types.ts";
+import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
 
 /**
  * Flattens the route configuration object.
@@ -38,11 +34,11 @@ import type {
  * @param result - The result object, used internally during recursion.
  * @returns The flattened route configuration.
  */
-export function formatRouteConfig<Config extends RouteConfig>(
+export function flattenRouteConfig<Config extends RouteConfig>(
   routeConfig: Config,
   parentPath = "",
   result: FlatRouteConfig = {},
-): FormatRouteConfig<Config> {
+): FlatRoutes<Config> {
   for (const parentRouteId in routeConfig) {
     const route = routeConfig[parentRouteId];
 
@@ -55,7 +51,7 @@ export function formatRouteConfig<Config extends RouteConfig>(
     if (route.children) {
       const parentPathToJoinChildren = removeQueryArea(fullPath);
 
-      const children = formatRouteConfig(
+      const children = flattenRouteConfig(
         route.children,
         parentPathToJoinChildren,
       );
@@ -68,5 +64,5 @@ export function formatRouteConfig<Config extends RouteConfig>(
       }
     }
   }
-  return result as FormatRouteConfig<Config>;
+  return result as FlatRoutes<Config>;
 }
