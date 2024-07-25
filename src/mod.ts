@@ -1,9 +1,9 @@
-import { flattenRouteConfig } from "./flattenConfig.ts";
+import { formatRouteConfig } from "./formatConfig.ts";
 import { createLinkGenerator } from "./generator.ts";
 import type {
   DefaultParameterType,
   ExtractRouteData,
-  FlattenRouteConfig,
+  FormatRouteConfig,
   LinkGenerator,
   Parameter,
   ParameterAcceptValue,
@@ -15,8 +15,8 @@ export {
   createLinkGenerator,
   type DefaultParameterType,
   type ExtractRouteData,
-  type FlattenRouteConfig,
-  flattenRouteConfig,
+  type FormatRouteConfig,
+  formatRouteConfig,
   type LinkGenerator,
   type Parameter,
   type ParameterAcceptValue,

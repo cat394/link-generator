@@ -2,189 +2,389 @@ import { assertEquals } from "$std/assert/mod.ts";
 import { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
 import {
   createLinkGenerator,
-  type FlattenRouteConfig,
-  flattenRouteConfig,
+  type FormatRouteConfig,
+  formatRouteConfig,
   type RouteConfig,
 } from "../src/mod.ts";
 
 const routeConfig = {
-  home: {
+  staticRoute: {
     path: "/",
   },
-  users: {
-    path: "/users/:userid",
+  dynamicRoute: {
+    path: "/dynamic",
     children: {
-      posts: {
-        path: "/posts/:postid<number>",
+      depth1: {
+        path: "/:param1",
+        children: {
+          depth2: {
+            path: "/depth2/:param2",
+          },
+        },
       },
     },
   },
-  dashboard: {
-    path: "/dashboard/projects/:projectid<string>",
-  },
-  posts: {
-    path: "/posts/:postid<number>",
-  },
-  news: {
-    path: "/news/?is_archived<boolean>",
-  },
-  orders: {
-    path: "/orders/:orderid?",
-  },
-  categories: {
-    path: "/categories/:categoryid<(a|b|c)>",
-  },
-  products: {
-    path: "/products/search/?size<(small|10|false)>&color",
-  },
-  books: {
-    path: "/books/search/?genre?&author?",
-  },
-  video: {
-    path: "/video/watch/?q<string>",
-  },
-  external: {
-    path: "https://",
+  constraintRoute: {
+    path: "/constraint",
     children: {
-      x: {
-        path: "x.com/:username",
+      param: {
+        path: "/param",
+        children: {
+          stringConstraint: {
+            path: "/:param<string>",
+          },
+          numberConstraint: {
+            path: "/:param<number>",
+          },
+          booleanConstraint: {
+            path: "/:param<boolean>",
+          },
+          optionalConstraint: {
+            path: "/:param?",
+          },
+          unionConstraint: {
+            path: "/:param<(a|1|false)>",
+          },
+        },
+      },
+      searchParam: {
+        path: "/searchParam",
+        children: {
+          stringConstraint: {
+            path: "/?key<string>",
+          },
+          numberConstraint: {
+            path: "/?key<number>",
+          },
+          booleanConstraint: {
+            path: "/?key<boolean>",
+          },
+          optionalConstraint: {
+            path: "/?key?",
+          },
+          unionConstraint: {
+            path: "/?key<(a|1|false)>",
+          },
+          multipleOptionalConstraint: {
+            path: "/?key1?&key2?",
+          },
+        },
+      },
+    },
+  },
+  withSearchParamsRoute: {
+    path: "/search",
+    children: {
+      singleParam: {
+        path: "/?key",
+      },
+      multiParams: {
+        path: "/?key1&key2",
+      },
+    },
+  },
+  mixRoute: {
+    path: "/mix",
+    children: {
+      signle: {
+        path: "/:param1/?searchParam1",
+      },
+      multipleParams: {
+        path: "/:param2/:param3/?searchParam1",
+      },
+      multipleSearchParams: {
+        path: "/:param3/?searchPram1&searchPram2",
+      },
+      nested: {
+        path: "/nested/?searchPram1",
+        children: {
+          depth1: {
+            path: "/:param1/?searchParam2",
+          },
+        },
+      },
+    },
+  },
+  absoluteRoute: {
+    path: "protocol://",
+    children: {
+      domain: {
+        path: "example.com",
+        children: {
+          static: {
+            path: "/staticPage",
+          },
+          withParam: {
+            path: "/:param",
+          },
+          withSearchParam: {
+            path: "/?key",
+          },
+        },
       },
     },
   },
 } as const satisfies RouteConfig;
 
 const flatResult = {
-  home: "/",
-  users: "/users/:userid",
-  "users/posts": "/users/:userid/posts/:postid<number>",
-  dashboard: "/dashboard/projects/:projectid<string>",
-  posts: "/posts/:postid<number>",
-  news: "/news/?is_archived<boolean>",
-  orders: "/orders/:orderid?",
-  categories: "/categories/:categoryid<(a|b|c)>",
-  products: "/products/search/?size<(small|10|false)>&color",
-  video: "/video/watch/?q<string>",
-  books: "/books/search/?genre?&author?",
-  "external": "https://",
-  "external/x": "https://x.com/:username",
-} as const satisfies FlattenRouteConfig<typeof routeConfig>;
+  staticRoute: "/",
+  dynamicRoute: "/dynamic",
+  "dynamicRoute/depth1": "/dynamic/:param1",
+  "dynamicRoute/depth1/depth2": "/dynamic/:param1/depth2/:param2",
+  constraintRoute: "/constraint",
+  "constraintRoute/param": "/constraint/param",
+  "constraintRoute/param/stringConstraint": "/constraint/param/:param<string>",
+  "constraintRoute/param/numberConstraint": "/constraint/param/:param<number>",
+  "constraintRoute/param/booleanConstraint":
+    "/constraint/param/:param<boolean>",
+  "constraintRoute/param/optionalConstraint": "/constraint/param/:param?",
+  "constraintRoute/param/unionConstraint":
+    "/constraint/param/:param<(a|1|false)>",
+  "constraintRoute/searchParam": "/constraint/searchParam",
+  "constraintRoute/searchParam/stringConstraint":
+    "/constraint/searchParam/?key<string>",
+  "constraintRoute/searchParam/numberConstraint":
+    "/constraint/searchParam/?key<number>",
+  "constraintRoute/searchParam/booleanConstraint":
+    "/constraint/searchParam/?key<boolean>",
+  "constraintRoute/searchParam/optionalConstraint":
+    "/constraint/searchParam/?key?",
+  "constraintRoute/searchParam/unionConstraint":
+    "/constraint/searchParam/?key<(a|1|false)>",
+  "constraintRoute/searchParam/multipleOptionalConstraint":
+    "/constraint/searchParam/?key1?&key2?",
+  withSearchParamsRoute: "/search",
+  "withSearchParamsRoute/singleParam": "/search/?key",
+  "withSearchParamsRoute/multiParams": "/search/?key1&key2",
+  mixRoute: "/mix",
+  "mixRoute/signle": "/mix/:param1/?searchParam1",
+  "mixRoute/multipleParams": "/mix/:param2/:param3/?searchParam1",
+  "mixRoute/multipleSearchParams": "/mix/:param3/?searchPram1&searchPram2",
+  "mixRoute/nested": "/mix/nested/?searchPram1",
+  "mixRoute/nested/depth1": "/mix/nested/:param1/?searchParam2",
+  absoluteRoute: "protocol://",
+  "absoluteRoute/domain": "protocol://example.com",
+  "absoluteRoute/domain/static": "protocol://example.com/staticPage",
+  "absoluteRoute/domain/withParam": "protocol://example.com/:param",
+  "absoluteRoute/domain/withSearchParam": "protocol://example.com/?key",
+} as const satisfies FormatRouteConfig<typeof routeConfig>;
 
-Deno.test("flatten config function test", () => {
-  const flatConfig = flattenRouteConfig(routeConfig);
+Deno.test("format function test", () => {
+  const flatConfig = formatRouteConfig(routeConfig);
 
   assertEquals(flatResult, flatConfig);
 });
 
 describe("generator function test", () => {
-  const flatConfig = flattenRouteConfig(routeConfig);
+  const flatConfig = formatRouteConfig(routeConfig);
 
   const link = createLinkGenerator(flatConfig);
 
   it("static path", () => {
-    assertEquals("/", link("home"));
+    assertEquals("/", link("staticRoute"));
   });
 
-  it("with params", () => {
-    assertEquals("/users/alice", link("users", { userid: "alice" }));
-  });
-
-  it("with string param", () => {
-    assertEquals(
-      "/dashboard/projects/a",
-      link("dashboard", { projectid: "a" }),
-    );
-  });
-
-  it("with numeric param", () => {
-    assertEquals("/posts/1", link("posts", { postid: 1 }));
-  });
-
-  it("with boolean param", () => {
-    assertEquals(
-      "/news?is_archived=true",
-      link("news", null, { is_archived: true }),
-    );
-  });
-
-  describe("nested route", () => {
-    it("all params are setted", () => {
+  describe("path with params", () => {
+    it("with single params", () => {
       assertEquals(
-        "/users/alice/posts/1",
-        link("users/posts", { userid: "alice", postid: 1 }),
+        "/dynamic/dynamicPart",
+        link("dynamicRoute/depth1", { param1: "dynamicPart" }),
       );
     });
 
-    it("single param is setted", () => {
+    it("with multiple params", () => {
       assertEquals(
-        "/users/alice/posts",
-        link("users/posts", { userid: "alice" }),
+        "/dynamic/dynamicPart1/depth2/dynamicPart2",
+        link("dynamicRoute/depth1/depth2", {
+          param1: "dynamicPart1",
+          param2: "dynamicPart2",
+        }),
       );
+    });
+
+    describe("params with constraint field", () => {
+      it("string constraint", () => {
+        assertEquals(
+          "/constraint/param/dynamicPart1",
+          link("constraintRoute/param/stringConstraint", {
+            param: "dynamicPart1",
+          }),
+        );
+      });
+
+      it("number constraint", () => {
+        assertEquals(
+          "/constraint/param/1",
+          link("constraintRoute/param/numberConstraint", { param: 1 }),
+        );
+      });
+
+      it("boolean constraint", () => {
+        assertEquals(
+          "/constraint/param/true",
+          link("constraintRoute/param/booleanConstraint", {
+            param: true,
+          }),
+        );
+      });
+
+      it("optional constraint if value exists", () => {
+        assertEquals(
+          "/constraint/param/dynamicPart1",
+          link("constraintRoute/param/optionalConstraint", {
+            param: "dynamicPart1",
+          }),
+        );
+      });
+
+      it("optional constraint if value is not present", () => {
+        assertEquals(
+          "/constraint/param",
+          link("constraintRoute/param/optionalConstraint", {
+            param: undefined,
+          }),
+        );
+      });
+
+      describe("Union constraint", () => {
+        it("Union constraint string element", () => {
+          assertEquals(
+            "/constraint/param/a",
+            link("constraintRoute/param/unionConstraint", {
+              param: "a",
+            }),
+          );
+        });
+
+        it("Union constraint number element", () => {
+          assertEquals(
+            "/constraint/param/1",
+            link("constraintRoute/param/numberConstraint", {
+              param: 1,
+            }),
+          );
+        });
+
+        it("Union constraint boolean element", () => {
+          assertEquals(
+            "/constraint/param/false",
+            link("constraintRoute/param/unionConstraint", {
+              param: false,
+            }),
+          );
+        });
+      });
+
+      describe("param value is undefined", () => {
+        it("param value is not set", () => {
+          assertEquals("/dynamic", link("dynamicRoute/depth1"));
+        });
+
+        it("explicitly set to undefined", () => {
+          assertEquals("/dynamic", link("dynamicRoute/depth1", undefined));
+        });
+      });
     });
   });
 
-  describe("with optional params", () => {
-    it("no params", () => {
-      assertEquals("/orders", link("orders"));
+  describe("path with search params", () => {
+    it("all search params have values set", () => {
+      assertEquals(
+        "/search?key=value",
+        link("withSearchParamsRoute/singleParam", null, { key: "value" }),
+      );
     });
 
-    it("param arg is undefined", () => {
-      assertEquals("/orders", link("orders", undefined));
+    it("some search params have values set", () => {
+      assertEquals(
+        "/search?key1=value1&key2=value2",
+        link("withSearchParamsRoute/multiParams", null, {
+          key1: "value1",
+          key2: "value2",
+        }),
+      );
     });
 
-    it("param is undefined", () => {
-      assertEquals("/orders", link("orders", { orderid: undefined }));
+    it("all search params have the value undefined", () => {
+      assertEquals("/search", link("withSearchParamsRoute/multiParams", null));
+    });
+
+    describe("search params with constraint filed", () => {
+      it("string constraint", () => {
+        assertEquals(
+          "/constraint/searchParam?key=value",
+          link("constraintRoute/searchParam/stringConstraint", null, {
+            key: "value",
+          }),
+        );
+      });
+
+      it("number constraint", () => {
+        assertEquals(
+          "/constraint/searchParam?key=1",
+          link("constraintRoute/searchParam/numberConstraint", null, {
+            key: 1,
+          }),
+        );
+      });
+
+      it("boolean constraint", () => {
+        assertEquals(
+          "/constraint/searchParam?key=true",
+          link("constraintRoute/searchParam/booleanConstraint", null, {
+            key: true,
+          }),
+        );
+      });
+
+      it("optional constraint if value exists", () => {
+        assertEquals(
+          "/constraint/searchParam?key=value",
+          link("constraintRoute/searchParam/optionalConstraint", null, {
+            key: "value",
+          }),
+        );
+      });
+
+      it("optional constraint if value is not present", () => {
+        assertEquals(
+          "/constraint/searchParam",
+          link("constraintRoute/searchParam/optionalConstraint"),
+        );
+      });
+
+      it("all optional search parameters have the value undefined", () => {
+        assertEquals(
+          "/constraint/searchParam",
+          link("constraintRoute/searchParam/multipleOptionalConstraint", null, {
+            key1: undefined,
+            key2: undefined,
+          }),
+        );
+      });
     });
   });
 
-  it("union parameter", () => {
-    assertEquals("/categories/a", link("categories", { categoryid: "a" }));
-  });
-
-  describe("with query params", () => {
-    it("skip param filed", () => {
+  describe("absolute path", () => {
+    it("static page", () => {
       assertEquals(
-        "/products/search?size=small&color=red",
-        link("products", null, { size: "small", color: "red" }),
+        "protocol://example.com/staticPage",
+        link("absoluteRoute/domain/static"),
       );
     });
 
-    it("string search param is setted", () => {
+    it("with param", () => {
       assertEquals(
-        "/products/search?color=red",
-        link("products", null, { color: "red" }),
+        "protocol://example.com/dynamicPage",
+        link("absoluteRoute/domain/withParam", { param: "dynamicPage" }),
       );
     });
 
-    it("numeric search param is setted", () => {
+    it("with search param", () => {
       assertEquals(
-        "/products/search?size=10",
-        link("products", null, { size: 10 }),
+        "protocol://example.com?key=value",
+        link("absoluteRoute/domain/withSearchParam", null, { key: "value" }),
       );
     });
-
-    it("boolean search param is setted", () => {
-      assertEquals(
-        "/products/search?size=false",
-        link("products", null, { size: false }),
-      );
-    });
-
-    it("all search params are undefined", () => {
-      assertEquals(
-        "/books/search",
-        link("books", null, { genre: undefined, author: undefined }),
-      );
-    });
-
-    it("q search param is setted", () => {
-      assertEquals("/video/watch?q=123", link("video", null, { q: "123" }));
-    });
-  });
-
-  it("external link", () => {
-    assertEquals(
-      "https://x.com/alice",
-      link("external/x", { username: "alice" }),
-    );
   });
 });
