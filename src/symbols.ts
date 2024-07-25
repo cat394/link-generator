@@ -1,6 +1,6 @@
 export enum Symbols {
   PathSeparater = "/",
-  Param = ":",
+  PathParam = ":",
   OptionalParam = "?",
   Search = "?",
   QuerySeparater = "&",
