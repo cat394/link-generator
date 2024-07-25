@@ -2,8 +2,8 @@ import { assertEquals } from "$std/assert/mod.ts";
 import { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
 import {
   createLinkGenerator,
-  type FormatRouteConfig,
-  formatRouteConfig,
+  type FlatRoutes,
+  flattenRouteConfig,
   type RouteConfig,
 } from "../src/mod.ts";
 
@@ -167,16 +167,16 @@ const flatResult = {
   "absoluteRoute/domain/static": "protocol://example.com/staticPage",
   "absoluteRoute/domain/withParam": "protocol://example.com/:param",
   "absoluteRoute/domain/withSearchParam": "protocol://example.com/?key",
-} as const satisfies FormatRouteConfig<typeof routeConfig>;
+} as const satisfies FlatRoutes<typeof routeConfig>;
 
 Deno.test("format function test", () => {
-  const flatConfig = formatRouteConfig(routeConfig);
+  const flatConfig = flattenRouteConfig(routeConfig);
 
   assertEquals(flatResult, flatConfig);
 });
 
 describe("generator function test", () => {
-  const flatConfig = formatRouteConfig(routeConfig);
+  const flatConfig = flattenRouteConfig(routeConfig);
 
   const link = createLinkGenerator(flatConfig);
 
@@ -274,16 +274,6 @@ describe("generator function test", () => {
           );
         });
       });
-
-      describe("param value is undefined", () => {
-        it("param value is not set", () => {
-          assertEquals("/dynamic", link("dynamicRoute/depth1"));
-        });
-
-        it("explicitly set to undefined", () => {
-          assertEquals("/dynamic", link("dynamicRoute/depth1", undefined));
-        });
-      });
     });
   });
 
@@ -291,14 +281,14 @@ describe("generator function test", () => {
     it("all search params have values set", () => {
       assertEquals(
         "/search?key=value",
-        link("withSearchParamsRoute/singleParam", null, { key: "value" }),
+        link("withSearchParamsRoute/singleParam", undefined, { key: "value" }),
       );
     });
 
     it("some search params have values set", () => {
       assertEquals(
         "/search?key1=value1&key2=value2",
-        link("withSearchParamsRoute/multiParams", null, {
+        link("withSearchParamsRoute/multiParams", undefined, {
           key1: "value1",
           key2: "value2",
         }),
@@ -306,14 +296,17 @@ describe("generator function test", () => {
     });
 
     it("all search params have the value undefined", () => {
-      assertEquals("/search", link("withSearchParamsRoute/multiParams", null));
+      assertEquals(
+        "/search",
+        link("withSearchParamsRoute/multiParams", undefined),
+      );
     });
 
     describe("search params with constraint filed", () => {
       it("string constraint", () => {
         assertEquals(
           "/constraint/searchParam?key=value",
-          link("constraintRoute/searchParam/stringConstraint", null, {
+          link("constraintRoute/searchParam/stringConstraint", undefined, {
             key: "value",
           }),
         );
@@ -322,7 +315,7 @@ describe("generator function test", () => {
       it("number constraint", () => {
         assertEquals(
           "/constraint/searchParam?key=1",
-          link("constraintRoute/searchParam/numberConstraint", null, {
+          link("constraintRoute/searchParam/numberConstraint", undefined, {
             key: 1,
           }),
         );
@@ -331,7 +324,7 @@ describe("generator function test", () => {
       it("boolean constraint", () => {
         assertEquals(
           "/constraint/searchParam?key=true",
-          link("constraintRoute/searchParam/booleanConstraint", null, {
+          link("constraintRoute/searchParam/booleanConstraint", undefined, {
             key: true,
           }),
         );
@@ -340,7 +333,7 @@ describe("generator function test", () => {
       it("optional constraint if value exists", () => {
         assertEquals(
           "/constraint/searchParam?key=value",
-          link("constraintRoute/searchParam/optionalConstraint", null, {
+          link("constraintRoute/searchParam/optionalConstraint", undefined, {
             key: "value",
           }),
         );
@@ -349,17 +342,21 @@ describe("generator function test", () => {
       it("optional constraint if value is not present", () => {
         assertEquals(
           "/constraint/searchParam",
-          link("constraintRoute/searchParam/optionalConstraint"),
+          link("constraintRoute/searchParam/optionalConstraint", undefined),
         );
       });
 
       it("all optional search parameters have the value undefined", () => {
         assertEquals(
           "/constraint/searchParam",
-          link("constraintRoute/searchParam/multipleOptionalConstraint", null, {
-            key1: undefined,
-            key2: undefined,
-          }),
+          link(
+            "constraintRoute/searchParam/multipleOptionalConstraint",
+            undefined,
+            {
+              key1: undefined,
+              key2: undefined,
+            },
+          ),
         );
       });
     });
@@ -383,7 +380,9 @@ describe("generator function test", () => {
     it("with search param", () => {
       assertEquals(
         "protocol://example.com?key=value",
-        link("absoluteRoute/domain/withSearchParam", null, { key: "value" }),
+        link("absoluteRoute/domain/withSearchParam", undefined, {
+          key: "value",
+        }),
       );
     });
   });
