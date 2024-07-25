@@ -79,7 +79,7 @@ function isRootPath(path: string): boolean {
   return path === "/";
 }
 
-function removeQueryArea(path: string): string {
+export function removeQueryArea(path: string): string {
   const searchAreaStartIndex = path.indexOf(
     Symbols.PathSeparater + Symbols.Search,
   );
@@ -111,9 +111,11 @@ function replaceParams(
 
     const paramValue = params[paramName];
 
-    return paramValue
-      ? Symbols.PathSeparater + encodeURIComponent(paramValue)
-      : "";
+    if (!paramValue && paramValue !== false) {
+      return "";
+    }
+
+    return Symbols.PathSeparater + encodeURIComponent(paramValue);
   });
 }
 

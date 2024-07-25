@@ -148,24 +148,18 @@ type NestedKeys<Config> = Config extends RouteConfig ? {
   }[keyof Config]
   : never;
 
-type RemoveDuplicatePathSeparator<Path extends string> = Path extends
-  `${Symbols.PathSeparater}${infer Rest}` ? RemoveDuplicatePathSeparator<Rest>
-  : Path extends `${infer Segment}${Symbols.PathSeparater}${infer Rest}`
-    ? `${Segment}${Symbols.PathSeparater}${RemoveDuplicatePathSeparator<Rest>}`
-  : Path;
-
-type PrependPathSeparator<Path extends string> = Path extends
-  `${Symbols.PathSeparater}${infer Rest}` ? Path
-  : `${Symbols.PathSeparater}${Path}`;
+// ------------------------------------------------------------------------------------------
 
 /**
  * Flattens a route configuration into a single-level object.
  * Each key is a route ID, and each value is the corresponding flattened path.
  */
-type FlattenRouteConfig<Config, ParentPath extends string = ""> = Config extends
-  RouteConfig ? {
+type FlattenRouteConfig<
+  Config,
+  ParentPath extends string = "",
+> = Config extends RouteConfig ? {
     [RouteId in NestedKeys<Config>]: RouteId extends
-      `${infer ParentRouteId}${typeof Symbols.PathSeparater}${infer ChildrenRouteId}`
+      `${infer ParentRouteId}${Symbols.PathSeparater}${infer ChildrenRouteId}`
       ? FlattenRouteConfig<
         Config[ParentRouteId]["children"],
         `${ParentPath}${Config[ParentRouteId]["path"]}`
@@ -174,11 +168,28 @@ type FlattenRouteConfig<Config, ParentPath extends string = ""> = Config extends
   }
   : never;
 
+type RemoveParentQuerySegments<Path extends string> = Path extends
+  `${infer Head}${Symbols.PathSeparater}${Symbols.Search}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
+  ? RemoveParentQuerySegments<`${Head}${Symbols.PathSeparater}${Tail}`>
+  : Path;
+
+type FormatRoutePath<Config> = Config extends FlatRouteConfig ? {
+    [RouteId in keyof Config]: Config[RouteId] extends
+      `${Symbols.PathSeparater}${infer Route}`
+      ? RemoveParentQuerySegments<`${Symbols.PathSeparater}${Route}`>
+      : Config[RouteId] extends `${infer Protocol}:/${infer Rest}`
+        ? `${Protocol}:/${RemoveParentQuerySegments<Rest>}`
+      : `${Config[RouteId]}`;
+  }
+  : never;
+
+type FormatRouteConfig<Config> = FormatRoutePath<FlattenRouteConfig<Config>>;
+
 export type {
   DefaultParameterType,
   ExtractRouteData,
   FlatRouteConfig,
-  FlattenRouteConfig,
+  FormatRouteConfig,
   LinkGenerator,
   Parameter,
   ParameterAcceptValue,
