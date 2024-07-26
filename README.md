@@ -118,7 +118,7 @@ Example:
    const routeConfig = {
      posts: {
        path: "/posts/:postid/?page",
-     }
+     },
    } as const satisfies RouteConfig;
    ```
 
@@ -189,7 +189,7 @@ Example:
      },
      category: {
        path: "/categories/:categoryid<(a|10|false)>",
-     }
+     },
    } as const satisfies RouteConfig;
    ```
 
@@ -233,7 +233,7 @@ Example:
 const routeConfig = {
   product: {
     path: "/products/:productid?",
-  }
+  },
 } as const satisfies RouteConfig;
 
 // ... create a link generator
