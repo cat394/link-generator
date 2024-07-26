@@ -84,8 +84,8 @@ bunx jsr add @kokomi/link-generator
    const flatRouteConfig = flattenRouteConfig(routeConfig);
    // {
    //   home: "/",
-   //   users: "/user",
-   //   "users/posts": "/users/:userid"
+   //   users: "/users",
+   //   "users/user": "/users/:userid"
    // }
    ```
 
@@ -100,7 +100,7 @@ bunx jsr add @kokomi/link-generator
    ```ts
    const rootPage = link("home"); // => '/'
    const usersPage = link("users"); // => '/users'
-   const userPage = link("users", { userid: "alice" }); // => '/users/alice'
+   const userPage = link("users/user", { userid: "alice" }); // => '/users/alice'
    ```
 
 ## Advanced Topics
@@ -134,8 +134,7 @@ Example:
    the query parameter that was required when defining the path.
 
    ```ts
-   const postpage = link("posts", { postid: "1" }, { page: 10 });
-   // => '/users/alice/posts/1?page=10'
+   const postpage = link("posts", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
 ### Constraint Fields
@@ -167,9 +166,9 @@ a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 You can create a literal type for those values by writing `(Literal|Union)` for
 the condition followed by the parameter and separated by the `|` sign, as in
 `/id<(a|b|10)>`. If the value can be converted to a numeric value, it is
-inferred as a numeric literal type. To define the query parameter for a route,
-add a `query` property to the route configuration object. The query property
-should be an object with keys as query parameter names and values as types.
+inferred as a numeric literal type. To define the search parameter for a route,
+add a search property to the route configuration object. The search property
+should be an object with keys as search parameter names and values as types.
 
 Example:
 
@@ -215,8 +214,11 @@ Example:
 
    ```ts
    const userpage = link("user", { userid: "alice" }); // userid only accept string type!
+
    const postpage = link("post", { postid: 1 }); // postid only accept number type!
+
    const newspage = link("news", undefined, { is_archived: true }); // is_archived search parameter only accept boolean type!
+
    const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
