@@ -9,24 +9,24 @@ import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
  * into a single-level object where the keys are the concatenated paths.
  *
  * ```ts
- * import { flattenConfig } from '@htmllover/link-generator';
+ * import { flattenConfig } from '@kokomi/link-generator';
  *
  * const routeConfig = {
- *   'home': {
+ *   home: {
  *     path: '/'
  *   },
- *   'users': {
- *     path: '/users/:userid',
+ *   users: {
+ *     path: '/users',
  *     children: {
- *       posts: {
- *         path: '/posts/:postid'
+ *       user: {
+ *         path: '/userid'
  *       }
  *     }
  *   }
  * } as const satisfies RouteConfig;
  *
  * const flatRouteConfig = flattenConfig(routeConfig);
- * // => { home: '/', 'users': '/users/:userid', 'users/posts': '/users/:userid/posts/:postid' }
+ * // => { home: '/', 'users': '/users', 'users/user': '/users/:user' }
  * ```
  *
  * @param routeConfig - The route configuration to flatten.

@@ -14,15 +14,15 @@ import { Symbols } from "./symbols.ts";
  * 	import { flattenConfig } from '@kokomi/link-generator';
  *
  * 	const routeConfig = {
- * 		'home': {
+ * 		home: {
  * 			path: '/'
  * 		},
- * 		'users': {
- * 			path: '/users/:userid',
+ * 		users: {
+ * 			path: '/users',
  * 				children: {
- * 					posts: {
- * 						path: '/posts/:postid?q=page<number>'
- * 					}
+ * 					user: {
+ *            path: '/:userid'
+ *          }
  * 				}
  * 		},
  * 	} as const satisfies RouteConfig;
@@ -33,10 +33,9 @@ import { Symbols } from "./symbols.ts";
  *
  * 	const rootpage = link('home');	// => '/'
  *
- * 	const userpage = link('users', { userid: 'alice' }); // => '/users/alice'
+ * 	const userpage = link('users'); // => '/users'
  *
- * 	const postpage = link('users/posts', { userid: 'alice', postid: '1' }, { page: 10 });
- * 	// => '/users/alice/posts/1?q=page=10'
+ * 	const postpage = link('users/user', { userid: 'alice' }); // => /users/alice
  * 	```
  *
  * @param flatRoutes - The route object processed by the flattenRouteConfig function.

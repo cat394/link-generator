@@ -57,6 +57,12 @@ bunx jsr add @kokomi/link-generator
 1. Define a route configuration object:
 
    ```ts
+   import {
+     createLinkGenerator,
+     flattenRouteConfig,
+     type RouteConfig,
+   } from "@kokomi/link-generator";
+
    const routeConfig = {
      home: {
        path: "/",
@@ -112,7 +118,7 @@ Example:
    const routeConfig = {
      posts: {
        path: "/posts/:postid/?page",
-     },
+     }
    } as const satisfies RouteConfig;
    ```
 
@@ -183,7 +189,7 @@ Example:
      },
      category: {
        path: "/categories/:categoryid<(a|10|false)>",
-     },
+     }
    } as const satisfies RouteConfig;
    ```
 
@@ -227,7 +233,7 @@ Example:
 const routeConfig = {
   product: {
     path: "/products/:productid?",
-  },
+  }
 } as const satisfies RouteConfig;
 
 // ... create a link generator
@@ -284,7 +290,7 @@ const routeConfig = {
   news: {
     path: "news/?is_archived<boolean>",
   },
-};
+} as const satisfies RouteConfig;
 
 const flatRouteConfig = flattenRouteConfig(routeConfig);
 
