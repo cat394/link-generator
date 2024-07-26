@@ -30,10 +30,7 @@ type LinkGenerator<Config extends FlatRouteConfig> = <
   RouteId extends keyof Config,
 >(
   routeId: RouteId,
-  params?: ExtractRouteData<Config>[RouteId]["search"] extends never
-    ? ExtractRouteData<Config>[RouteId]["params"]
-    : ExtractRouteData<Config>[RouteId]["params"] | null,
-  search?: ExtractRouteData<Config>[RouteId]["search"],
+  ...params: ParamArgs<Config, RouteId>
 ) => string;
 
 type FlatRouteConfig = Record<string, string>;
@@ -91,14 +88,15 @@ type InferParamType<Constraint extends string> = Constraint extends "string"
   : never;
 
 type ExtractParams<Segment extends string> = Segment extends
-  `${Symbols.Param}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
+  `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
   ? Partial<Record<ParamName, InferParamType<Constraint> | null>>
   : Segment extends
-    `${Symbols.Param}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+    `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
-  : Segment extends `${Symbols.Param}${infer ParamName}${Symbols.OptionalParam}`
+  : Segment extends
+    `${Symbols.PathParam}${infer ParamName}${Symbols.OptionalParam}`
     ? Partial<Record<ParamName, DefaultParameterType>>
-  : Segment extends `${Symbols.Param}${infer ParamName}`
+  : Segment extends `${Symbols.PathParam}${infer ParamName}`
     ? Record<ParamName, DefaultParameterType>
   : never;
 
@@ -148,8 +146,6 @@ type NestedKeys<Config> = Config extends RouteConfig ? {
   }[keyof Config]
   : never;
 
-// ------------------------------------------------------------------------------------------
-
 /**
  * Flattens a route configuration into a single-level object.
  * Each key is a route ID, and each value is the corresponding flattened path.
@@ -173,7 +169,7 @@ type RemoveParentQuerySegments<Path extends string> = Path extends
   ? RemoveParentQuerySegments<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 
-type FormatRoutePath<Config> = Config extends FlatRouteConfig ? {
+type PrunePaths<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${Symbols.PathSeparater}${infer Route}`
       ? RemoveParentQuerySegments<`${Symbols.PathSeparater}${Route}`>
@@ -183,14 +179,32 @@ type FormatRoutePath<Config> = Config extends FlatRouteConfig ? {
   }
   : never;
 
-type FormatRouteConfig<Config> = FormatRoutePath<FlattenRouteConfig<Config>>;
+type FlatRoutes<Config> = PrunePaths<FlattenRouteConfig<Config>>;
+
+type EmptyObject = Record<string, never>;
+
+type ParamArgs<
+  Config extends FlatRouteConfig,
+  RouteId extends keyof Config,
+> = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
+  ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
+  : ExtractRouteData<Config>[RouteId]["params"] extends
+    Record<string, undefined> ? [
+      ExtractRouteData<Config>[RouteId]["params"]?,
+      ExtractRouteData<Config>[RouteId]["search"]?,
+    ]
+  : [
+    ExtractRouteData<Config>[RouteId]["params"],
+    ExtractRouteData<Config>[RouteId]["search"]?,
+  ];
 
 export type {
   DefaultParameterType,
   ExtractRouteData,
   FlatRouteConfig,
-  FormatRouteConfig,
+  FlatRoutes,
   LinkGenerator,
+  ParamArgs,
   Parameter,
   ParameterAcceptValue,
   Route,

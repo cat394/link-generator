@@ -1,8 +1,8 @@
 import type {
   DefaultParameterType,
-  ExtractRouteData,
   FlatRouteConfig,
   LinkGenerator,
+  ParamArgs,
   Parameter,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
@@ -39,20 +39,21 @@ import { Symbols } from "./symbols.ts";
  * 	// => '/users/alice/posts/1?q=page=10'
  * 	```
  *
- * @param flatRouteConfig - The route object processed by the flattenRouteConfig function.
+ * @param flatRoutes - The route object processed by the flattenRouteConfig function.
  * @returns A function to generate links.
  */
 export function createLinkGenerator<Config extends FlatRouteConfig>(
-  flatRouteConfig: Config,
+  flatRoutes: Config,
 ): LinkGenerator<Config> {
   return <RouteId extends keyof Config>(
     routeId: RouteId,
-    params?: ExtractRouteData<Config>[RouteId]["search"] extends never
-      ? ExtractRouteData<Config>[RouteId]["params"]
-      : ExtractRouteData<Config>[RouteId]["params"] | null,
-    search?: ExtractRouteData<Config>[RouteId]["search"],
+    ...params: ParamArgs<Config, RouteId>
   ): string => {
-    const pathTemplate = flatRouteConfig[routeId];
+    const pathTemplate = flatRoutes[routeId];
+
+    const pathParamEntry = params[0];
+
+    const searchParamEntry = params[1];
 
     if (isRootPath(pathTemplate)) return "/";
 
@@ -62,10 +63,12 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
 
     path = removeConstrainedArea(path);
 
-    path = replaceParams(path, params);
+    path = replaceParams(path, pathParamEntry);
 
-    if (search) {
-      const searchParams = createSearchParams(search as unknown as Parameter);
+    if (searchParamEntry) {
+      const searchParams = createSearchParams(
+        searchParamEntry as unknown as Parameter,
+      );
 
       // If all search parameters are undefined, no query parameters are added.
       searchParams ? (path += `?${searchParams}`) : "";
@@ -102,7 +105,7 @@ function replaceParams(
   params: Parameter | undefined | null,
 ): string {
   const paramArea = new RegExp(
-    `\\${Symbols.PathSeparater}${Symbols.Param}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
+    `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
     "g",
   );
 
