@@ -18,12 +18,11 @@ type RouteConfig = {
 };
 
 /**
- * A function that generates links based on the given configuration.
+ * Generates a link for a specified route with optional path and query parameters.
  *
- * @template Config - The type of the configuration object.
+ * @template Config - The type of the flat route config object.
  * @param routeId - The route ID.
- * @param params - The parameters for the route.
- * @param search - The search parameters for the route.
+ * @param params - Set path parameters and query parameters
  * @returns The generated link.
  */
 type LinkGenerator<Config extends FlatRouteConfig> = <
@@ -51,20 +50,63 @@ type ParseSearch<QuerySegment extends string> = Split<
   Symbols.QuerySeparater
 >;
 
-type ParameterIsNullable = undefined | null;
+/**
+ * The default value type for path or search parameters without constraints.
+ * These are values that can be URL-encoded.
+ *
+ * Example:
+ *
+ * ```ts
+ * const routeConfig = {
+ *  route1: {
+ *    path: '/route1/:param',
+ *  }
+ * } as const satisfies RouteConfig;
+ *
+ * ...create link generator
+ *
+ * link('route1', { param: 'hi' }); // string type value is OK
+ *
+ * link('route1', { param: 1 }) // number type value is OK
+ *
+ * link('route1', { param: false }) // boolean type value is OK
+ * ```
+ */
+type DefaultParamValue = string | number | boolean;
 
 /**
- * Represents a value that a parameter can accept.
+ * The type for all possible values that path or search parameters can accept, including optional values.
+ *
+ * Example:
+ *
+ * ```ts
+ * const routeConfig = {
+ *  route1: {
+ *    path: '/route1/:param?',
+ *  }
+ * } as const satisfies RouteConfig;
+ *
+ * ...create link generator
+ *
+ * link('route1', { param: 'hi' }); // string type value is OK
+ *
+ * link('route1', { param: 1 }) // number type value is OK
+ *
+ * link('route1', { param: false }) // boolean type value is OK
+ *
+ * link('route1', { param: undefined }) // undefined type value is OK!!
+ * ```
  */
-type DefaultParameterType = string | number | boolean;
-
-type ParameterAcceptValue = DefaultParameterType | ParameterIsNullable;
+type ParamValue = DefaultParamValue | undefined;
 
 /**
- * Represents a collection of parameters.
- * Each key is a parameter name, and each value is the parameter's value.
+ * The type of object that sets the values of the path and search parameters that are used as the params argument to the link function.
+ *
+ * ```ts
+ * // link('route1': RouteId, {...}: Param, {...}: Param)
+ * ```
  */
-type Parameter = Record<string, ParameterAcceptValue>;
+type Param = Record<string, ParamValue>;
 
 type StringToBoolean<UnionSegment extends string> = UnionSegment extends "true"
   ? true
@@ -89,15 +131,15 @@ type InferParamType<Constraint extends string> = Constraint extends "string"
 
 type ExtractParams<Segment extends string> = Segment extends
   `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
-  ? Partial<Record<ParamName, InferParamType<Constraint> | null>>
+  ? Partial<Record<ParamName, InferParamType<Constraint>>>
   : Segment extends
     `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
   : Segment extends
     `${Symbols.PathParam}${infer ParamName}${Symbols.OptionalParam}`
-    ? Partial<Record<ParamName, DefaultParameterType>>
+    ? Partial<Record<ParamName, DefaultParamValue>>
   : Segment extends `${Symbols.PathParam}${infer ParamName}`
-    ? Record<ParamName, DefaultParameterType>
+    ? Record<ParamName, DefaultParamValue>
   : never;
 
 type FindSearchSegment<Segment extends string> = Segment extends
@@ -106,31 +148,55 @@ type FindSearchSegment<Segment extends string> = Segment extends
 
 type ExtractSearch<Segment extends string> = Segment extends
   `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
-  ? Partial<Record<QueryName, InferParamType<Constraint>> | null>
+  ? Partial<Record<QueryName, InferParamType<Constraint>>>
   : Segment extends
     `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<QueryName, InferParamType<Constraint>>
   : Segment extends `${infer QueryName}${Symbols.OptionalParam}`
-    ? Partial<Record<QueryName, DefaultParameterType>>
-  : Segment extends `${infer QueryName}`
-    ? Record<QueryName, DefaultParameterType>
+    ? Partial<Record<QueryName, DefaultParamValue>>
+  : Segment extends `${infer QueryName}` ? Record<QueryName, DefaultParamValue>
   : never;
 
-type Params<Path extends string> = ExtractParams<ParseSegment<Path>[number]>;
+type PathParams<Path extends string> = ExtractParams<
+  ParseSegment<Path>[number]
+>;
 
 type Search<Path extends string> = ExtractSearch<
   ParseSearch<FindSearchSegment<ParseSegment<Path>[number]>>[number]
 >;
 
 /**
- * Extracts the route data from a flattened route configuration.
- * Each key is a route ID, and each value contains the path, parameters, and search parameters for that route.
+ * Extracts route data, including path and search parameters, for a given route configuration.
+ *
+ * Example:
+ *
+ * ```ts
+ * type FlattenedRoutes = {
+ *  'parent': '/parentpath/?key1&key2',
+ *  'parent/child': '/parentpath/:param',
+ * }
+ *
+ * type Result = ExtractRouteData<FlattendRoutes>;
+ *
+ * // => {
+ *  parent: {
+ *    path: '/parentpath/:param/?key',
+ *    params: never,
+ *    params: {
+ *      param: DefaultParamValue
+ *    }
+ *    search: {
+ *      key: DefaultParamValue,
+ *    }
+ *  }
+ * }
+ * ```
  */
-type ExtractRouteData<FlatRoute extends FlatRouteConfig> = {
-  [RouteId in keyof FlatRoute]: {
+type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
+  [RouteId in keyof FlattenedRoutes]: {
     path: RouteId;
-    params: Params<FlatRoute[RouteId]>;
-    search: Search<FlatRoute[RouteId]>;
+    params: PathParams<FlattenedRoutes[RouteId]>;
+    search: Search<FlattenedRoutes[RouteId]>;
   };
 };
 
@@ -147,8 +213,26 @@ type NestedKeys<Config> = Config extends RouteConfig ? {
   : never;
 
 /**
- * Flattens a route configuration into a single-level object.
- * Each key is a route ID, and each value is the corresponding flattened path.
+ * Flattens the route configuration object into a simpler structure.
+ *
+ * Example:
+ *
+ * ```ts
+ * const routeConfig = {
+ *  parent: {
+ *    path: '/parentpath',
+ *    children: {
+ *      child: {
+ *        path: '/childpath'
+ *      }
+ *    }
+ *  }
+ * } as const satisfies RouteConfig;
+ *
+ * type Result = FlattenRouteConfig<typeof routeConfig>;
+ *
+ * // => { parent: '/parentpath', 'parent/child': '/parentpath/childpath' }
+ * ```
  */
 type FlattenRouteConfig<
   Config,
@@ -164,32 +248,119 @@ type FlattenRouteConfig<
   }
   : never;
 
-type RemoveParentQuerySegments<Path extends string> = Path extends
+/**
+ * Removes parent search parameters from a given route path.
+ *
+ * Example:
+ *
+ * ```ts
+ * type Path =  '/parentpath/?pkey1&pkey2/childpath/?ckey1&ckey2'
+ *
+ * type Result = RemoveParentSearchParams<Path>;
+ *
+ * // => '/parentpath/childpath/?ckey1&ckey2' }
+ * ```
+ */
+type RemoveParentSearchParams<Path extends string> = Path extends
   `${infer Head}${Symbols.PathSeparater}${Symbols.Search}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
-  ? RemoveParentQuerySegments<`${Head}${Symbols.PathSeparater}${Tail}`>
+  ? RemoveParentSearchParams<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 
+/**
+ * Removes parent search parameters from the flattened route configuration.
+ *
+ * Example:
+ *
+ * ```ts
+ * const routeConfig = {
+ *  parent: {
+ *    path: '/parentpath/?pkey1&pkey2',
+ *    children: {
+ *      child: {
+ *        path: '/childpath/?ckey1&ckey2'
+ *      }
+ *    }
+ *  },
+ *  external: {
+ *    path: 'https://example.com?pkey1&pkey2',
+ *    children: {
+ *      child: {
+ *        path: 'https://example.com/childpath/?ckey1&ckey2'
+ *      }
+ *    }
+ *  }
+ * } as const satisfies RouteConfig;
+ *
+ * type Result = PrunePaths<typeof routeConfig>;
+ *
+ * // => {
+ *  'parent': '/parentpath/?pkey1&pkey2',
+ *  'parent/child': '/parentpath/childpath/?ckey1&ckey2',
+ *  'external': 'https://example.com?pkey1&pkey2
+ *  'external/child': 'https://example.com/childpath/?ckey1&ckey2
+ * }
+ * ```
+ */
 type PrunePaths<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
-      `${Symbols.PathSeparater}${infer Route}`
-      ? RemoveParentQuerySegments<`${Symbols.PathSeparater}${Route}`>
-      : Config[RouteId] extends `${infer Protocol}:/${infer Rest}`
-        ? `${Protocol}:/${RemoveParentQuerySegments<Rest>}`
-      : `${Config[RouteId]}`;
+      `${infer Protocol}:/${infer Rest}` // Is absolute path?
+      ? `${Protocol}:/${RemoveParentSearchParams<Rest>}`
+      : RemoveParentSearchParams<Config[RouteId]>;
   }
   : never;
 
+/**
+ * Flattens the route configuration object and removes parent search parameters.
+ *
+ * Example:
+ *
+ * ```ts
+ * const routeConfig = {
+ *  parent1: {
+ *    path: '/parent1path',
+ *    children: {
+ *      child: {
+ *        path: '/childpath'
+ *      }
+ *    }
+ *  },
+ *  parent2: {
+ *    path: '/parent2path/?key1&key2',
+ *    children: {
+ *      child: {
+ *        path: '/:param
+ *      }
+ *    }
+ *  }
+ *
+ * } as const satisfies RouteConfig;
+ *
+ * type Result = FlatRotues<typeof routeConfig>;
+ *
+ * // => {
+ *  'parent1': '/parent1path',
+ *  'parent1/child': '/parent1path/childpath',
+ *  'parent2': '/parent2path/?key1&key2'
+ *  'parent2/child': '/parent2path/:param'
+ * }
+ * ```
+ */
 type FlatRoutes<Config> = PrunePaths<FlattenRouteConfig<Config>>;
 
 type EmptyObject = Record<string, never>;
 
+/**
+ * Extracts path and search parameters for a given route.
+ */
 type ParamArgs<
   Config extends FlatRouteConfig,
   RouteId extends keyof Config,
 > = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
   ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
-  : ExtractRouteData<Config>[RouteId]["params"] extends
-    Record<string, undefined> ? [
+  : ExtractRouteData<Config>[RouteId]["params"] extends Record<
+    string,
+    undefined
+  > ? [
       ExtractRouteData<Config>[RouteId]["params"]?,
       ExtractRouteData<Config>[RouteId]["search"]?,
     ]
@@ -199,14 +370,14 @@ type ParamArgs<
   ];
 
 export type {
-  DefaultParameterType,
+  DefaultParamValue,
   ExtractRouteData,
   FlatRouteConfig,
   FlatRoutes,
   LinkGenerator,
+  Param,
   ParamArgs,
-  Parameter,
-  ParameterAcceptValue,
+  ParamValue,
   Route,
   RouteConfig,
 };
