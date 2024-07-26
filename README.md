@@ -2,8 +2,7 @@
 
 # Link Generator
 
-This is a simple link generator that allows you to centrally manage link
-generators.
+This simple link generator allows you to centrally manage links.
 
 This is distributed through a package registry called
 [JSR](https://jsr.io/@kokomi/link-generator).
@@ -16,11 +15,10 @@ This is distributed through a package registry called
 
 - **Type Safety**
 
-  Parameters and search parameters can be extracted from strings contained in
-  paths using TypeScript's type inference to enable type-safe link generation.
-  Additionally, paths can contain special strings called condition fields. This
-  allows you to specify the type of the parameter as a string, numeric type, or
-  string literal type that is a numeric literal type.
+  Extract parameters and search parameters from strings in paths using
+  TypeScript's type inference for type-safe link generation. Paths can include
+  condition fields to specify parameter types as strings, numeric types, or
+  string literal types that are numeric literals
 
 ## Installation
 
@@ -64,10 +62,10 @@ bunx jsr add @kokomi/link-generator
        path: "/",
      },
      users: {
-       path: "/users/:userid",
+       path: "/users",
        children: {
-         posts: {
-           path: "/posts/:postid",
+         user: {
+           path: "/:userid",
          },
        },
      },
@@ -80,8 +78,8 @@ bunx jsr add @kokomi/link-generator
    const flatRouteConfig = flattenRouteConfig(routeConfig);
    // {
    //   home: "/",
-   //   users: "/users/:userid",
-   //   "users/posts": "/users/:userid/posts/:postid"
+   //   users: "/user",
+   //   "users/posts": "/users/:userid"
    // }
    ```
 
@@ -95,8 +93,8 @@ bunx jsr add @kokomi/link-generator
 
    ```ts
    const rootPage = link("home"); // => '/'
+   const usersPage = link("users"); // => '/users'
    const userPage = link("users", { userid: "alice" }); // => '/users/alice'
-   const postPage = link("users/posts", { userid: "alice", postid: "1" }); // => '/users/alice/posts/1'
    ```
 
 ## Advanced Topics
@@ -174,16 +172,16 @@ Example:
 
    ```ts
    const routeConfig = {
-     users: {
+     user: {
        path: "/users/:userid<string>",
      },
-     posts: {
-       path: "/posts/:postid<number>",
+     post: {
+       path: "/post/:postid<number>",
      },
      news: {
-       path: "/news/?q=is_archived<boolean>",
+       path: "/news/?is_archived<boolean>",
      },
-     categories: {
+     category: {
        path: "/categories/:categoryid<(a|10|false)>",
      },
    } as const satisfies RouteConfig;
@@ -210,10 +208,10 @@ Example:
    The strings in each segment of a union type are automatically converted.
 
    ```ts
-   const userpage = link("users", { userid: "alice" }); // userid only accept string type!
-   const postpage = link("posts", { postid: 1 }); // postid only accept number type!
+   const userpage = link("user", { userid: "alice" }); // userid only accept string type!
+   const postpage = link("post", { postid: 1 }); // postid only accept number type!
    const newspage = link("news", undefined, { is_archived: true }); // is_archived search parameter only accept boolean type!
-   const categorypage = link("categories", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
+   const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
 ### Optional Type
@@ -227,14 +225,14 @@ Example:
 
 ```ts
 const routeConfig = {
-  products: {
-    path: "/products/id?",
+  product: {
+    path: "/products/:productid?",
   },
 } as const satisfies RouteConfig;
 
 // ... create a link generator
 
-const productPage = link("products", { id: undefined });
+const productPage = link("product", { productid: undefined });
 ```
 
 ### Absolute Paths
@@ -250,7 +248,7 @@ Example:
 
 ```ts
 const routeConfig = {
-  "external": {
+  external: {
     path: "https://",
     children: {
       youtube: {
@@ -280,7 +278,7 @@ as shown below.
 
 ```ts
 const routeConfig = {
-  users: {
+  user: {
     path: "users/:userid",
   },
   news: {
@@ -293,7 +291,7 @@ const flatRouteConfig = flattenRouteConfig(routeConfig);
 type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // ^
 // {
-//     users: {
+//     user: {
 //         path: "users/:userid";
 //         params: Record<"userid", DefaultParamValue>;
 //         search: never;
@@ -308,15 +306,12 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 
 ## Concept:
 
-Links are fragile. Therefore, it is essential to call them by unique names
-(route ids) rather than hard-coding them.
-
-However, thinking about route ids can be tedious and boring. How can we ensure
-the uniqueness of route ids while creating them efficiently?
-
-We utilized TypeScript's type checking with objects. In TypeScript, trying to
-define properties with the same name at the same level of an object will cause a
-type error.
+Links are fragile, so calling them by unique route ids is essential instead of
+hard-coding them. To ensure the uniqueness of route ids while creating them
+efficiently, we use TypeScript's type checking with objects. Defining properties
+with the same name at the same level of an object will cause a type error,
+ensuring no overlapping route ids. Additionally, child route ids can be made
+unique by prefixing them with the parent route id.
 
 ```ts
 const obj = {
@@ -348,15 +343,15 @@ const obj = {
 };
 ```
 
-The route ids generated by this object would be as follows:
+The generated route ids would be:
 
 - parent1
 - parent1/child1
 - parent2
 - parent2/child1
 
-This approach allows for the creation of route ids flexibly while maintaining a
-broad namespace.
+This approach allows flexible creation of route ids while maintaining a broad
+namespace.
 
 ## Acknowledgements
 
