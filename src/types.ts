@@ -45,9 +45,9 @@ type Split<
 
 type ParseSegment<Path extends string> = Split<Path, Symbols.PathSeparater>;
 
-type ParseSearch<QuerySegment extends string> = Split<
+type ParseSearchParams<QuerySegment extends string> = Split<
   QuerySegment,
-  Symbols.QuerySeparater
+  Symbols.SearchParamSeparator
 >;
 
 /**
@@ -129,40 +129,30 @@ type InferParamType<Constraint extends string> = Constraint extends "string"
     ? ParseUnion<Union>
   : never;
 
-type ExtractParams<Segment extends string> = Segment extends
-  `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
+type CreateParams<Segment extends string> = Segment extends
+  `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
   ? Partial<Record<ParamName, InferParamType<Constraint>>>
   : Segment extends
-    `${Symbols.PathParam}${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+    `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
-  : Segment extends
-    `${Symbols.PathParam}${infer ParamName}${Symbols.OptionalParam}`
+  : Segment extends `${infer ParamName}${Symbols.OptionalParam}`
     ? Partial<Record<ParamName, DefaultParamValue>>
-  : Segment extends `${Symbols.PathParam}${infer ParamName}`
-    ? Record<ParamName, DefaultParamValue>
+  : Record<Segment, DefaultParamValue>;
+
+type FindPathParams<Segment> = Segment extends `:${infer ParamField}`
+  ? ParamField
   : never;
 
-type FindSearchSegment<Segment extends string> = Segment extends
-  `${Symbols.Search}${infer QuerySegment}` ? QuerySegment
+type FindSearchParams<Path extends string> = Path extends
+  `${infer Head}${Symbols.SearchParam}${infer SearchParams}` ? SearchParams
   : never;
 
-type ExtractSearch<Segment extends string> = Segment extends
-  `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
-  ? Partial<Record<QueryName, InferParamType<Constraint>>>
-  : Segment extends
-    `${infer QueryName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
-    ? Record<QueryName, InferParamType<Constraint>>
-  : Segment extends `${infer QueryName}${Symbols.OptionalParam}`
-    ? Partial<Record<QueryName, DefaultParamValue>>
-  : Segment extends `${infer QueryName}` ? Record<QueryName, DefaultParamValue>
-  : never;
-
-type PathParams<Path extends string> = ExtractParams<
-  ParseSegment<Path>[number]
+type PathParams<Path extends string> = CreateParams<
+  FindPathParams<ParseSegment<Path>[number]>
 >;
 
-type Search<Path extends string> = ExtractSearch<
-  ParseSearch<FindSearchSegment<ParseSegment<Path>[number]>>[number]
+type SearchParams<Path extends string> = CreateParams<
+  ParseSearchParams<FindSearchParams<Path>>[number]
 >;
 
 /**
@@ -196,7 +186,7 @@ type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
   [RouteId in keyof FlattenedRoutes]: {
     path: RouteId;
     params: PathParams<FlattenedRoutes[RouteId]>;
-    search: Search<FlattenedRoutes[RouteId]>;
+    search: SearchParams<FlattenedRoutes[RouteId]>;
   };
 };
 
@@ -262,7 +252,7 @@ type FlattenRouteConfig<
  * ```
  */
 type RemoveParentSearchParams<Path extends string> = Path extends
-  `${infer Head}${Symbols.PathSeparater}${Symbols.Search}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
+  `${infer Head}${Symbols.SearchParam}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
   ? RemoveParentSearchParams<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 

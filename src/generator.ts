@@ -80,9 +80,7 @@ function isRootPath(path: string): boolean {
 }
 
 export function removeQueryArea(path: string): string {
-  const searchAreaStartIndex = path.indexOf(
-    Symbols.PathSeparater + Symbols.Search,
-  );
+  const searchAreaStartIndex = path.indexOf(Symbols.SearchParam);
 
   const isExistSearchArea = searchAreaStartIndex > 0;
 
@@ -99,7 +97,7 @@ function removeConstrainedArea(path: string): string {
 
 function replaceParams(path: string, params: Param | undefined): string {
   const paramArea = new RegExp(
-    `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
+    `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\${Symbols.PathSeparater}?]+)\\?${Symbols.OptionalParam}`,
     "g",
   );
 
