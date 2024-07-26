@@ -228,14 +228,13 @@ Example:
 ```ts
 const routeConfig = {
   products: {
-    path: "/products/?q=size&color",
+    path: "/products/id?",
   },
 } as const satisfies RouteConfig;
 
 // ... create a link generator
 
-const productPage = link("products", undefined, { size: "large" });
-// => '/products?q=size=large'
+const productPage = link("products", { id: undefined });
 ```
 
 ### Absolute Path
@@ -252,7 +251,12 @@ const routeConfig = {
     path: "https://",
     children: {
       youtube: {
-        path: "youtube.com/:videoid",
+        path: "youtube.com",
+        children: {
+          video: {
+            path: "watch?videoid"
+          }
+        }
       },
     },
   },
@@ -260,8 +264,8 @@ const routeConfig = {
 
 // ... create a link generator
 
-const youtubeLink = link("external/youtube", { videoid: "123" });
-// => 'https://youtube.com/123'
+const youtubeLink = link("external/youtube/video", undefined, { videoid: "123" });
+// => 'https://youtube.com/watch?123'
 ```
 
 ## Route data Type
