@@ -1,9 +1,9 @@
 import type {
-  DefaultParameterType,
+  DefaultParamValue,
   FlatRouteConfig,
   LinkGenerator,
+  Param,
   ParamArgs,
-  Parameter,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
 
@@ -66,9 +66,7 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
     path = replaceParams(path, pathParamEntry);
 
     if (searchParamEntry) {
-      const searchParams = createSearchParams(
-        searchParamEntry as unknown as Parameter,
-      );
+      const searchParams = createSearchParams(searchParamEntry as Param);
 
       // If all search parameters are undefined, no query parameters are added.
       searchParams ? (path += `?${searchParams}`) : "";
@@ -100,10 +98,7 @@ function removeConstrainedArea(path: string): string {
   return path.replace(constraintArea, "");
 }
 
-function replaceParams(
-  path: string,
-  params: Parameter | undefined | null,
-): string {
+function replaceParams(path: string, params: Param | undefined): string {
   const paramArea = new RegExp(
     `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\/?]+)\\?${Symbols.OptionalParam}`,
     "g",
@@ -122,14 +117,14 @@ function replaceParams(
   });
 }
 
-function createSearchParams(search: Parameter): string {
+function createSearchParams(search: Param): string {
   return Object.entries(search)
     .filter(
       ([_, value]) => value !== "" && value !== undefined && value !== null,
     )
     .map(
       ([key, value]) =>
-        `${key}=${encodeURIComponent(value as DefaultParameterType)}`,
+        `${key}=${encodeURIComponent(value as DefaultParamValue)}`,
     )
     .join("&");
 }
