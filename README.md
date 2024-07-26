@@ -243,7 +243,8 @@ Starting with version 3.0.0, absolute paths are resolved in a similar manner to
 relative paths, which means that the `*` prefix that was previously required
 when defining an absolute paths is no longer necessary.
 
-**Absolute paths are specially type-handled so do not include a `/` in front of the domain.**
+**Absolute paths are specially type-handled so do not include a `/` in front of
+the domain.**
 
 Example:
 
@@ -256,9 +257,9 @@ const routeConfig = {
         path: "youtube.com",
         children: {
           video: {
-            path: "/watch?videoid"
-          }
-        }
+            path: "/watch?videoid",
+          },
+        },
       },
     },
   },
@@ -266,7 +267,9 @@ const routeConfig = {
 
 // ... create a link generator
 
-const youtubeLink = link("external/youtube/video", undefined, { videoid: "123" });
+const youtubeLink = link("external/youtube/video", undefined, {
+  videoid: "123",
+});
 // => 'https://youtube.com/watch?123'
 ```
 
