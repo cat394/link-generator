@@ -201,7 +201,7 @@ Example:
    const link = createLinkGenerator(flatRouteConfig);
    ```
 
-4. link is generated.
+4. Generate link.
 
    You will notice that the userid value is of type `string`, the postid value
    is of type `number`, and the categoryid value is of type `'a'|10|false`
@@ -212,38 +212,38 @@ Example:
    ```ts
    const userpage = link("users", { userid: "alice" }); // userid only accept string type!
    const postpage = link("posts", { postid: 1 }); // postid only accept number type!
-   const newspage = link("news", null, { is_archived: true }); // is_archived query parameter only accept boolean type!
+   const newspage = link("news", undefined, { is_archived: true }); // is_archived search parameter only accept boolean type!
    const categorypage = link("categories", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
 ### Optional Type
 
-When a path parameter or query parameter value is set to `null` or `undefined`,
-the part of the path it falls under is completely omitted. This property can be
-used to avoid nesting when the same query parameter is taken in both the parent
-and child paths. If the query parameter exists, the second argument of the link
-function will also accept `null`.
+Parameter value types are `string | number | boolean` by default.
+
+If you want some parameter value to be optional (receive undefined), you can put
+`?` after the parameter.
 
 Example:
 
 ```ts
 const routeConfig = {
   products: {
-    path: "/products/:productid?/?q=size&color",
+    path: "/products/id?",
   },
 } as const satisfies RouteConfig;
 
 // ... create a link generator
 
-const productPage = link("products", null, { size: "large" });
-// => '/products?q=size=large'
+const productPage = link("products", { id: undefined });
 ```
 
-### Absolute Path
+### Absolute Paths
 
 Starting with version 3.0.0, absolute paths are resolved in a similar manner to
 relative paths, which means that the `*` prefix that was previously required
-when defining an absolute path is no longer necessary.
+when defining an absolute paths is no longer necessary.
+
+**Absolute paths are specially type-handled so do not include a `/` in front of the domain.**
 
 Example:
 
@@ -253,7 +253,12 @@ const routeConfig = {
     path: "https://",
     children: {
       youtube: {
-        path: "youtube.com/:videoid",
+        path: "youtube.com",
+        children: {
+          video: {
+            path: "/watch?videoid"
+          }
+        }
       },
     },
   },
@@ -261,8 +266,8 @@ const routeConfig = {
 
 // ... create a link generator
 
-const youtubeLink = link("*external/youtube", { videoid: "123" });
-// => 'https://youtube.com/123'
+const youtubeLink = link("external/youtube/video", undefined, { videoid: "123" });
+// => 'https://youtube.com/watch?123'
 ```
 
 ## Route data Type
@@ -276,7 +281,7 @@ const routeConfig = {
     path: "users/:userid",
   },
   news: {
-    path: "news/?q=is_archived<boolean>",
+    path: "news/?is_archived<boolean>",
   },
 };
 
@@ -287,11 +292,11 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // {
 //     users: {
 //         path: "users/:userid";
-//         params: Record<"userid", DefaultParameterType>;
+//         params: Record<"userid", DefaultParamValue>;
 //         search: never;
 //     };
 //     news: {
-//         path: "news/?q=is_archived<boolean>";
+//         path: "news/?is_archived<boolean>";
 //         params: never;
 //         search: Record<"is_archived", boolean>;
 //     };
