@@ -146,7 +146,7 @@ constraints can be placed on path and query parameters:
 You can narrow down the id to a string type by defining a condition field with a
 parameter name followed by the string `string`, as in `/:id<string>`.
 
-- **Numumber type**
+- **Number type**
 
 You can narrow down the id to a number type by defining a condition field with a
 parameter name followed by the string `number`, as in `/:id<number>`.
