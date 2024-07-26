@@ -237,11 +237,13 @@ const routeConfig = {
 const productPage = link("products", { id: undefined });
 ```
 
-### Absolute Path
+### Absolute Paths
 
 Starting with version 3.0.0, absolute paths are resolved in a similar manner to
 relative paths, which means that the `*` prefix that was previously required
-when defining an absolute path is no longer necessary.
+when defining an absolute paths is no longer necessary.
+
+**Absolute paths are specially type-handled so do not include a `/` in front of the domain.**
 
 Example:
 
@@ -254,7 +256,7 @@ const routeConfig = {
         path: "youtube.com",
         children: {
           video: {
-            path: "watch?videoid"
+            path: "/watch?videoid"
           }
         }
       },
