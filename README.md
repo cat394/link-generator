@@ -107,8 +107,7 @@ bunx jsr add @kokomi/link-generator
 
 ### Search Parameters
 
-To define the search parameter field, write the path like this **Remember to
-prefix the query parameter with `/`!**
+> As of version 5, search parameters no longer need to be preceded by a `/`.
 
 Example:
 
@@ -117,7 +116,7 @@ Example:
    ```ts
    const routeConfig = {
      posts: {
-       path: "/posts/:postid/?page",
+       path: "/posts/:postid?page",
      },
    } as const satisfies RouteConfig;
    ```
@@ -184,7 +183,7 @@ Example:
        path: "/post/:postid<number>",
      },
      news: {
-       path: "/news/?is_archived<boolean>",
+       path: "/news?is_archived<boolean>",
      },
      category: {
        path: "/categories/:categoryid<(a|10|false)>",
@@ -224,6 +223,9 @@ Example:
 
 ### Optional Type
 
+> Starting with version 5, path parameters can no longer be optional, only
+> search parameters can be optional.
+
 Parameter value types are `string | number | boolean` by default.
 
 If you want some parameter value to be optional (receive undefined), you can put
@@ -234,7 +236,7 @@ Example:
 ```ts
 const routeConfig = {
   product: {
-    path: "/products/:productid?",
+    path: "/products?size?&category",
   },
 } as const satisfies RouteConfig;
 
@@ -290,7 +292,7 @@ const routeConfig = {
     path: "users/:userid",
   },
   news: {
-    path: "news/?is_archived<boolean>",
+    path: "news?is_archived<boolean>",
   },
 } as const satisfies RouteConfig;
 
