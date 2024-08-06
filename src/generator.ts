@@ -58,11 +58,15 @@ export function createLinkGenerator<Config extends FlatRouteConfig>(
 
     let path: string = pathTemplate;
 
-    path = removeQueryArea(path);
+    path = removeSearchArea(path);
 
-    path = removeConstrainedArea(path);
+    if (isIncludeConstraintArea(path)) {
+      path = removeConstrainedArea(path);
+    }
 
-    path = replaceParams(path, pathParamEntry);
+    if (pathParamEntry) {
+      path = replaceParams(path, pathParamEntry);
+    }
 
     if (searchParamEntry) {
       const searchParams = createSearchParams(searchParamEntry as Param);
@@ -79,12 +83,18 @@ function isRootPath(path: string): boolean {
   return path === "/";
 }
 
-export function removeQueryArea(path: string): string {
+export function removeSearchArea(path: string): string {
   const searchAreaStartIndex = path.indexOf(Symbols.SearchParam);
 
   const isExistSearchArea = searchAreaStartIndex > 0;
 
   return isExistSearchArea ? path.slice(0, searchAreaStartIndex) : path;
+}
+
+function isIncludeConstraintArea(path: string): boolean {
+  const constraintOpenIndex = path.indexOf(Symbols.ConstraintOpen);
+
+  return constraintOpenIndex > 0;
 }
 
 function removeConstrainedArea(path: string): string {
@@ -95,15 +105,13 @@ function removeConstrainedArea(path: string): string {
   return path.replace(constraintArea, "");
 }
 
-function replaceParams(path: string, params: Param | undefined): string {
+function replaceParams(path: string, params: Param): string {
   const paramArea = new RegExp(
-    `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\${Symbols.PathSeparater}?]+)\\?${Symbols.OptionalParam}`,
+    `\\${Symbols.PathSeparater}${Symbols.PathParam}(?<paramName>[^\\${Symbols.PathSeparater}?]+)`,
     "g",
   );
 
   return path.replace(paramArea, (_, paramName) => {
-    if (!params) return "";
-
     const paramValue = params[paramName];
 
     if (!paramValue && paramValue !== false) {
@@ -114,7 +122,7 @@ function replaceParams(path: string, params: Param | undefined): string {
   });
 }
 
-function createSearchParams(search: Param): string {
+function createSearchParams(search: Partial<Param>): string {
   return Object.entries(search)
     .filter(
       ([_, value]) => value !== "" && value !== undefined && value !== null,
