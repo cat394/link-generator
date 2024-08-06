@@ -140,9 +140,12 @@ type PathParams<Path extends string> = UnionToIntersection<
   CreatePathParams<FindPathParams<ParseSegment<Path>[number]>>
 >;
 
-type IsUnknownType<T> = unknown extends T ? T extends unknown ? true
+type IsType<CheckType, TargetType> = CheckType extends TargetType
+  ? TargetType extends CheckType ? true
   : false
   : false;
+
+type IsUnknownType<T> = IsType<unknown, T>;
 
 type SearchParams<Path extends string> = UnionToIntersection<
   CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
@@ -178,8 +181,12 @@ type SearchParams<Path extends string> = UnionToIntersection<
 type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
   [RouteId in keyof FlattenedRoutes]: {
     path: FlattenedRoutes[RouteId];
-    params: PathParams<FlattenedRoutes[RouteId]>;
-    search: SearchParams<FlattenedRoutes[RouteId]>;
+    params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
+      ? never
+      : PathParams<FlattenedRoutes[RouteId]>;
+    search: IsUnknownType<SearchParams<FlattenedRoutes[RouteId]>> extends true
+      ? never
+      : SearchParams<FlattenedRoutes[RouteId]>;
   };
 };
 
