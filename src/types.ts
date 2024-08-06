@@ -109,14 +109,19 @@ type InferParamType<Constraint extends string> = Constraint extends "string"
     ? ParseUnion<Union>
   : never;
 
-type CreateParams<Segment extends string> = Segment extends
+type CreatePathParams<Segment extends string> = Segment extends
+  `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+  ? Record<ParamName, InferParamType<Constraint>>
+  : Record<Segment, DefaultParamValue>;
+
+type CreateSearchParams<Segment extends string> = Segment extends
   `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
   ? Partial<Record<ParamName, InferParamType<Constraint>>>
   : Segment extends
     `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
     ? Record<ParamName, InferParamType<Constraint>>
   : Segment extends `${infer ParamName}${Symbols.OptionalParam}`
-    ? Partial<Record<Segment, DefaultParamValue>>
+    ? Partial<Record<ParamName, DefaultParamValue>>
   : Record<Segment, DefaultParamValue>;
 
 type FindPathParams<Segment> = Segment extends
@@ -131,7 +136,7 @@ type FindSearchParams<Path extends string> = Path extends
   : never;
 
 type PathParams<Path extends string> = UnionToIntersection<
-  CreateParams<FindPathParams<ParseSegment<Path>[number]>>
+  CreatePathParams<FindPathParams<ParseSegment<Path>[number]>>
 >;
 
 type IsUnknownType<T> = unknown extends T ? T extends unknown ? true
@@ -139,7 +144,7 @@ type IsUnknownType<T> = unknown extends T ? T extends unknown ? true
   : false;
 
 type SearchParams<Path extends string> = UnionToIntersection<
-  CreateParams<ParseSearchParams<FindSearchParams<Path>>[number]>
+  CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
 >;
 
 /**
