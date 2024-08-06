@@ -4,5 +4,8 @@
   "exports": "./src/mod.ts",
   "imports": {
     "$std/": "https://deno.land/std@0.224.0/"
+  },
+  "compilerOptions": {
+    "noImplicitAny": false
   }
 }

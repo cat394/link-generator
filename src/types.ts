@@ -45,10 +45,16 @@ type Split<
 
 type ParseSegment<Path extends string> = Split<Path, Symbols.PathSeparater>;
 
-type ParseSearchParams<QuerySegment extends string> = Split<
-  QuerySegment,
+type ParseSearchParams<SearchParams extends string> = Split<
+  SearchParams,
   Symbols.SearchParamSeparator
 >;
+
+// deno-lint-ignore no-explicit-any
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I,
+) => void ? I
+  : never;
 
 /**
  * The default value type for path or search parameters without constraints.
@@ -75,38 +81,13 @@ type ParseSearchParams<QuerySegment extends string> = Split<
 type DefaultParamValue = string | number | boolean;
 
 /**
- * The type for all possible values that path or search parameters can accept, including optional values.
- *
- * Example:
- *
- * ```ts
- * const routeConfig = {
- *  route1: {
- *    path: '/route1/:param?',
- *  }
- * } as const satisfies RouteConfig;
- *
- * ...create link generator
- *
- * link('route1', { param: 'hi' }); // string type value is OK
- *
- * link('route1', { param: 1 }) // number type value is OK
- *
- * link('route1', { param: false }) // boolean type value is OK
- *
- * link('route1', { param: undefined }) // undefined type value is OK!!
- * ```
- */
-type ParamValue = DefaultParamValue | undefined;
-
-/**
  * The type of object that sets the values of the path and search parameters that are used as the params argument to the link function.
  *
  * ```ts
  * // link('route1': RouteId, {...}: Param, {...}: Param)
  * ```
  */
-type Param = Record<string, ParamValue>;
+type Param = Record<string, DefaultParamValue>;
 
 type StringToBoolean<UnionSegment extends string> = UnionSegment extends "true"
   ? true
@@ -129,7 +110,12 @@ type InferParamType<Constraint extends string> = Constraint extends "string"
     ? ParseUnion<Union>
   : never;
 
-type CreateParams<Segment extends string> = Segment extends
+type CreatePathParams<Segment extends string> = Segment extends
+  `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+  ? Record<ParamName, InferParamType<Constraint>>
+  : Record<Segment, DefaultParamValue>;
+
+type CreateSearchParams<Segment extends string> = Segment extends
   `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
   ? Partial<Record<ParamName, InferParamType<Constraint>>>
   : Segment extends
@@ -139,20 +125,27 @@ type CreateParams<Segment extends string> = Segment extends
     ? Partial<Record<ParamName, DefaultParamValue>>
   : Record<Segment, DefaultParamValue>;
 
-type FindPathParams<Segment> = Segment extends `:${infer ParamField}`
-  ? ParamField
+type FindPathParams<Segment> = Segment extends
+  `${Symbols.PathParam}${infer ParamField}`
+  ? ParamField extends
+    `${infer ParamName}${Symbols.SearchParam}${infer SearchField}` ? ParamName
+  : ParamField
   : never;
 
 type FindSearchParams<Path extends string> = Path extends
   `${infer Head}${Symbols.SearchParam}${infer SearchParams}` ? SearchParams
   : never;
 
-type PathParams<Path extends string> = CreateParams<
-  FindPathParams<ParseSegment<Path>[number]>
+type PathParams<Path extends string> = UnionToIntersection<
+  CreatePathParams<FindPathParams<ParseSegment<Path>[number]>>
 >;
 
-type SearchParams<Path extends string> = CreateParams<
-  ParseSearchParams<FindSearchParams<Path>>[number]
+type IsUnknownType<T> = unknown extends T ? T extends unknown ? true
+  : false
+  : false;
+
+type SearchParams<Path extends string> = UnionToIntersection<
+  CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
 >;
 
 /**
@@ -184,7 +177,7 @@ type SearchParams<Path extends string> = CreateParams<
  */
 type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
   [RouteId in keyof FlattenedRoutes]: {
-    path: RouteId;
+    path: FlattenedRoutes[RouteId];
     params: PathParams<FlattenedRoutes[RouteId]>;
     search: SearchParams<FlattenedRoutes[RouteId]>;
   };
@@ -347,13 +340,8 @@ type ParamArgs<
   RouteId extends keyof Config,
 > = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
   ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
-  : ExtractRouteData<Config>[RouteId]["params"] extends Record<
-    string,
-    undefined
-  > ? [
-      ExtractRouteData<Config>[RouteId]["params"]?,
-      ExtractRouteData<Config>[RouteId]["search"]?,
-    ]
+  : IsUnknownType<ExtractRouteData<Config>[RouteId]["params"]> extends true
+    ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
   : [
     ExtractRouteData<Config>[RouteId]["params"],
     ExtractRouteData<Config>[RouteId]["search"]?,
@@ -367,7 +355,6 @@ export type {
   LinkGenerator,
   Param,
   ParamArgs,
-  ParamValue,
   Route,
   RouteConfig,
 };
