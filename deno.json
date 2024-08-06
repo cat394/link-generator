@@ -1,6 +1,6 @@
 {
   "name": "@kokomi/link-generator",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "exports": "./src/mod.ts",
   "imports": {
     "$std/": "https://deno.land/std@0.224.0/"
