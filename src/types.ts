@@ -1,12 +1,12 @@
-import type { Symbols } from './symbols.ts';
+import type { Symbols } from "./symbols.ts";
 
 /**
  * Represents a single route in the application.
  * Each route has a path and optionally nested child routes.
  */
 type Route = {
-	path: string;
-	children?: RouteConfig;
+  path: string;
+  children?: RouteConfig;
 };
 
 /**
@@ -14,7 +14,7 @@ type Route = {
  * This type maps route IDs to their respective route definitions.
  */
 type RouteConfig = {
-	[routeId: string]: Route;
+  [routeId: string]: Route;
 };
 
 /**
@@ -26,38 +26,35 @@ type RouteConfig = {
  * @returns The generated link.
  */
 type LinkGenerator<Config extends FlatRouteConfig> = <
-	RouteId extends keyof Config
+  RouteId extends keyof Config,
 >(
-	routeId: RouteId,
-	...params: ParamArgs<Config, RouteId>
+  routeId: RouteId,
+  ...params: ParamArgs<Config, RouteId>
 ) => string;
 
 type FlatRouteConfig = Record<string, string>;
 
 type Split<
-	Source extends string,
-	Separator extends string
-> = string extends Source
-	? string[]
-	: Source extends ''
-	? []
-	: Source extends `${infer Before}${Separator}${infer After}`
-	? [Before, ...Split<After, Separator>]
-	: [Source];
+  Source extends string,
+  Separator extends string,
+> = string extends Source ? string[]
+  : Source extends "" ? []
+  : Source extends `${infer Before}${Separator}${infer After}`
+    ? [Before, ...Split<After, Separator>]
+  : [Source];
 
 type ParseSegment<Path extends string> = Split<Path, Symbols.PathSeparater>;
 
 type ParseSearchParams<SearchParams extends string> = Split<
-	SearchParams,
-	Symbols.SearchParamSeparator
+  SearchParams,
+  Symbols.SearchParamSeparator
 >;
 
 // deno-lint-ignore no-explicit-any
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-	k: infer I
-) => void
-	? I
-	: never;
+  k: infer I,
+) => void ? I
+  : never;
 
 /**
  * The default value type for path or search parameters without constraints.
@@ -92,71 +89,66 @@ type DefaultParamValue = string | number | boolean;
  */
 type Param = Record<string, DefaultParamValue>;
 
-type StringToBoolean<UnionSegment extends string> = UnionSegment extends 'true'
-	? true
-	: UnionSegment extends 'false'
-	? false
-	: UnionSegment;
+type StringToBoolean<UnionSegment extends string> = UnionSegment extends "true"
+  ? true
+  : UnionSegment extends "false" ? false
+  : UnionSegment;
 
-type StringToNumber<UnionSegment extends string> =
-	UnionSegment extends `${infer NumericString extends number}`
-		? NumericString
-		: UnionSegment;
+type StringToNumber<UnionSegment extends string> = UnionSegment extends
+  `${infer NumericString extends number}` ? NumericString
+  : UnionSegment;
 
 type ParseUnion<UnionString extends string> = StringToBoolean<
-	StringToNumber<Split<UnionString, Symbols.UnionSeparater>[number]>
+  StringToNumber<Split<UnionString, Symbols.UnionSeparater>[number]>
 >;
 
-type InferParamType<Constraint extends string> = Constraint extends 'string'
-	? string
-	: Constraint extends 'number'
-	? number
-	: Constraint extends 'boolean'
-	? boolean
-	: Constraint extends `${Symbols.UnionOpen}${infer Union}${Symbols.UnionClose}`
-	? ParseUnion<Union>
-	: never;
+type InferParamType<Constraint extends string> = Constraint extends "string"
+  ? string
+  : Constraint extends "number" ? number
+  : Constraint extends "boolean" ? boolean
+  : Constraint extends `${Symbols.UnionOpen}${infer Union}${Symbols.UnionClose}`
+    ? ParseUnion<Union>
+  : never;
 
-type CreatePathParams<Segment extends string> =
-	Segment extends `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
-		? Record<ParamName, InferParamType<Constraint>>
-		: Record<Segment, DefaultParamValue>;
+type CreatePathParams<Segment extends string> = Segment extends
+  `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+  ? Record<ParamName, InferParamType<Constraint>>
+  : Record<Segment, DefaultParamValue>;
 
-type CreateSearchParams<Segment extends string> =
-	Segment extends `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
-		? Partial<Record<ParamName, InferParamType<Constraint>>>
-		: Segment extends `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
-		? Record<ParamName, InferParamType<Constraint>>
-		: Segment extends `${infer ParamName}${Symbols.OptionalParam}`
-		? Partial<Record<ParamName, DefaultParamValue>>
-		: Record<Segment, DefaultParamValue>;
+type CreateSearchParams<Segment extends string> = Segment extends
+  `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
+  ? Partial<Record<ParamName, InferParamType<Constraint>>>
+  : Segment extends
+    `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}`
+    ? Record<ParamName, InferParamType<Constraint>>
+  : Segment extends `${infer ParamName}${Symbols.OptionalParam}`
+    ? Partial<Record<ParamName, DefaultParamValue>>
+  : Record<Segment, DefaultParamValue>;
 
-type FindPathParams<Segment> =
-	Segment extends `${Symbols.PathParam}${infer ParamField}`
-		? ParamField extends `${infer ParamName}${Symbols.SearchParam}${infer SearchField}`
-			? ParamName
-			: ParamField
-		: never;
+type FindPathParams<Segment> = Segment extends
+  `${Symbols.PathParam}${infer ParamField}`
+  ? ParamField extends
+    `${infer ParamName}${Symbols.SearchParam}${infer SearchField}` ? ParamName
+  : ParamField
+  : never;
 
-type FindSearchParams<Path extends string> =
-	Path extends `${infer Head}${Symbols.SearchParam}${infer SearchParams}`
-		? SearchParams
-		: never;
+type FindSearchParams<Path extends string> = Path extends
+  `${infer Head}${Symbols.SearchParam}${infer SearchParams}` ? SearchParams
+  : never;
 
 type PathParams<Path extends string> = UnionToIntersection<
-	CreatePathParams<FindPathParams<ParseSegment<Path>[number]>>
+  CreatePathParams<FindPathParams<ParseSegment<Path>[number]>>
 >;
 
 type IsType<CheckType, TargetType> = CheckType extends TargetType
-	? TargetType extends CheckType
-		? true
-		: false
-	: false;
+  ? TargetType extends CheckType ? true
+  : false
+  : false;
 
 type IsUnknownType<T> = IsType<unknown, T>;
 
 type SearchParams<Path extends string> = UnionToIntersection<
-	CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
+  CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
 >;
 
 /**
@@ -187,30 +179,28 @@ type SearchParams<Path extends string> = UnionToIntersection<
  * ```
  */
 type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
-	[RouteId in keyof FlattenedRoutes]: {
-		path: FlattenedRoutes[RouteId];
-		params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
-			? never
-			: PathParams<FlattenedRoutes[RouteId]>;
-		search: IsUnknownType<SearchParams<FlattenedRoutes[RouteId]>> extends true
-			? never
-			: SearchParams<FlattenedRoutes[RouteId]>;
-	};
+  [RouteId in keyof FlattenedRoutes]: {
+    path: FlattenedRoutes[RouteId];
+    params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
+      ? never
+      : PathParams<FlattenedRoutes[RouteId]>;
+    search: IsUnknownType<SearchParams<FlattenedRoutes[RouteId]>> extends true
+      ? never
+      : SearchParams<FlattenedRoutes[RouteId]>;
+  };
 };
 
-type NestedKeys<Config> = Config extends RouteConfig
-	? {
-			[ParentKey in keyof Config]: ParentKey extends string
-				? Config[ParentKey] extends { children: RouteConfig }
-					?
-							| `${ParentKey}`
-							| `${ParentKey}${Symbols.PathSeparater}${NestedKeys<
-									Config[ParentKey]['children']
-							  >}`
-					: ParentKey
-				: never;
-	  }[keyof Config]
-	: never;
+type NestedKeys<Config> = Config extends RouteConfig ? {
+    [ParentKey in keyof Config]: ParentKey extends string
+      ? Config[ParentKey] extends { children: RouteConfig } ?
+          | `${ParentKey}`
+          | `${ParentKey}${Symbols.PathSeparater}${NestedKeys<
+            Config[ParentKey]["children"]
+          >}`
+      : ParentKey
+      : never;
+  }[keyof Config]
+  : never;
 
 /**
  * Flattens the route configuration object into a simpler structure.
@@ -235,18 +225,18 @@ type NestedKeys<Config> = Config extends RouteConfig
  * ```
  */
 type FlattenRouteConfig<
-	Config,
-	ParentPath extends string = ''
-> = Config extends RouteConfig
-	? {
-			[RouteId in NestedKeys<Config>]: RouteId extends `${infer ParentRouteId}${Symbols.PathSeparater}${infer ChildrenRouteId}`
-				? FlattenRouteConfig<
-						Config[ParentRouteId]['children'],
-						`${ParentPath}${Config[ParentRouteId]['path']}`
-				  >[ChildrenRouteId]
-				: `${ParentPath}${Config[RouteId]['path']}`;
-	  }
-	: never;
+  Config,
+  ParentPath extends string = "",
+> = Config extends RouteConfig ? {
+    [RouteId in NestedKeys<Config>]: RouteId extends
+      `${infer ParentRouteId}${Symbols.PathSeparater}${infer ChildrenRouteId}`
+      ? FlattenRouteConfig<
+        Config[ParentRouteId]["children"],
+        `${ParentPath}${Config[ParentRouteId]["path"]}`
+      >[ChildrenRouteId]
+      : `${ParentPath}${Config[RouteId]["path"]}`;
+  }
+  : never;
 
 /**
  * Removes parent search parameters from a given route path.
@@ -261,10 +251,10 @@ type FlattenRouteConfig<
  * // => '/parentpath/childpath/?ckey1&ckey2' }
  * ```
  */
-type RemoveParentSearchParams<Path extends string> =
-	Path extends `${infer Head}${Symbols.SearchParam}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
-		? RemoveParentSearchParams<`${Head}${Symbols.PathSeparater}${Tail}`>
-		: Path;
+type RemoveParentSearchParams<Path extends string> = Path extends
+  `${infer Head}${Symbols.SearchParam}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
+  ? RemoveParentSearchParams<`${Head}${Symbols.PathSeparater}${Tail}`>
+  : Path;
 
 /**
  * Removes parent search parameters from the flattened route configuration.
@@ -301,13 +291,13 @@ type RemoveParentSearchParams<Path extends string> =
  * }
  * ```
  */
-type PrunePaths<Config> = Config extends FlatRouteConfig
-	? {
-			[RouteId in keyof Config]: Config[RouteId] extends `${infer Protocol}:/${infer Rest}` // Is absolute path?
-				? `${Protocol}:/${RemoveParentSearchParams<Rest>}`
-				: RemoveParentSearchParams<Config[RouteId]>;
-	  }
-	: never;
+type PrunePaths<Config> = Config extends FlatRouteConfig ? {
+    [RouteId in keyof Config]: Config[RouteId] extends
+      `${infer Protocol}:/${infer Rest}` // Is absolute path?
+      ? `${Protocol}:/${RemoveParentSearchParams<Rest>}`
+      : RemoveParentSearchParams<Config[RouteId]>;
+  }
+  : never;
 
 /**
  * Flattens the route configuration object and removes parent search parameters.
@@ -353,25 +343,25 @@ type EmptyObject = Record<string, never>;
  * Extracts path and search parameters for a given route.
  */
 type ParamArgs<
-	Config extends FlatRouteConfig,
-	RouteId extends keyof Config
-> = ExtractRouteData<Config>[RouteId]['params'] extends EmptyObject
-	? [undefined?, ExtractRouteData<Config>[RouteId]['search']?]
-	: IsUnknownType<ExtractRouteData<Config>[RouteId]['params']> extends true
-	? [undefined?, ExtractRouteData<Config>[RouteId]['search']?]
-	: [
-			ExtractRouteData<Config>[RouteId]['params'],
-			ExtractRouteData<Config>[RouteId]['search']?
-	  ];
+  Config extends FlatRouteConfig,
+  RouteId extends keyof Config,
+> = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
+  ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
+  : IsUnknownType<ExtractRouteData<Config>[RouteId]["params"]> extends true
+    ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
+  : [
+    ExtractRouteData<Config>[RouteId]["params"],
+    ExtractRouteData<Config>[RouteId]["search"]?,
+  ];
 
 export type {
-	DefaultParamValue,
-	ExtractRouteData,
-	FlatRouteConfig,
-	FlatRoutes,
-	LinkGenerator,
-	Param,
-	ParamArgs,
-	Route,
-	RouteConfig,
+  DefaultParamValue,
+  ExtractRouteData,
+  FlatRouteConfig,
+  FlatRoutes,
+  LinkGenerator,
+  Param,
+  ParamArgs,
+  Route,
+  RouteConfig,
 };
