@@ -1,4 +1,4 @@
-import { removeQueryArea } from "./generator.ts";
+import { removeSearchArea } from "./generator.ts";
 import { Symbols } from "./symbols.ts";
 import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
 
@@ -49,7 +49,7 @@ export function flattenRouteConfig<Config extends RouteConfig>(
     result[parentRouteId] = fullPath;
 
     if (route.children) {
-      const parentPathToJoinChildren = removeQueryArea(fullPath);
+      const parentPathToJoinChildren = removeSearchArea(fullPath);
 
       const children = flattenRouteConfig(
         route.children,

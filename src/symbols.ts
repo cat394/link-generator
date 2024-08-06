@@ -2,7 +2,7 @@ export enum Symbols {
   PathSeparater = "/",
   PathParam = ":",
   OptionalParam = "?",
-  SearchParam = "/?",
+  SearchParam = "?",
   SearchParamSeparator = "&",
   ConstraintOpen = "<",
   ConstraintClose = ">",

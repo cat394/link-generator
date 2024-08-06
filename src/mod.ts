@@ -6,7 +6,6 @@ import type {
   FlatRoutes,
   LinkGenerator,
   Param,
-  ParamValue,
   Route,
   RouteConfig,
 } from "./types.ts";
@@ -19,7 +18,6 @@ export {
   flattenRouteConfig,
   type LinkGenerator,
   type Param,
-  type ParamValue,
   type Route,
   type RouteConfig,
 };
