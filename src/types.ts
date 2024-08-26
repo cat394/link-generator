@@ -45,9 +45,9 @@ type Split<
 
 type ParseSegment<Path extends string> = Split<Path, Symbols.PathSeparater>;
 
-type ParseSearchParams<SearchParams extends string> = Split<
-  SearchParams,
-  Symbols.SearchParamSeparator
+type ParseQueryParams<QueryString extends string> = Split<
+  QueryString,
+  Symbols.QuerySeparator
 >;
 
 // deno-lint-ignore no-explicit-any
@@ -57,7 +57,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   : never;
 
 /**
- * The default value type for path or search parameters without constraints.
+ * The default value type for path or query parameters without constraints.
  * These are values that can be URL-encoded.
  *
  * Example:
@@ -81,7 +81,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 type DefaultParamValue = string | number | boolean;
 
 /**
- * The type of object that sets the values of the path and search parameters that are used as the params argument to the link function.
+ * The type of object that sets the values of the path and query parameters that are used as the params argument to the link function.
  *
  * ```ts
  * // link('route1': RouteId, {...}: Param, {...}: Param)
@@ -115,7 +115,7 @@ type CreatePathParams<Segment extends string> = Segment extends
   ? Record<ParamName, InferParamType<Constraint>>
   : Record<Segment, DefaultParamValue>;
 
-type CreateSearchParams<Segment extends string> = Segment extends
+type CreateQueryParams<Segment extends string> = Segment extends
   `${infer ParamName}${Symbols.ConstraintOpen}${infer Constraint}${Symbols.ConstraintClose}${Symbols.OptionalParam}`
   ? Partial<Record<ParamName, InferParamType<Constraint>>>
   : Segment extends
@@ -127,13 +127,13 @@ type CreateSearchParams<Segment extends string> = Segment extends
 
 type FindPathParams<Segment> = Segment extends
   `${Symbols.PathParam}${infer ParamField}`
-  ? ParamField extends
-    `${infer ParamName}${Symbols.SearchParam}${infer SearchField}` ? ParamName
+  ? ParamField extends `${infer ParamName}${Symbols.Query}${infer QueryField}`
+    ? ParamName
   : ParamField
   : never;
 
-type FindSearchParams<Path extends string> = Path extends
-  `${infer Head}${Symbols.SearchParam}${infer SearchParams}` ? SearchParams
+type FindQueryString<Path extends string> = Path extends
+  `${infer Head}${Symbols.Query}${infer QueryString}` ? QueryString
   : never;
 
 type PathParams<Path extends string> = UnionToIntersection<
@@ -147,12 +147,12 @@ type IsType<CheckType, TargetType> = CheckType extends TargetType
 
 type IsUnknownType<T> = IsType<unknown, T>;
 
-type SearchParams<Path extends string> = UnionToIntersection<
-  CreateSearchParams<ParseSearchParams<FindSearchParams<Path>>[number]>
+type QueryParams<Path extends string> = UnionToIntersection<
+  CreateQueryParams<ParseQueryParams<FindQueryString<Path>>[number]>
 >;
 
 /**
- * Extracts route data, including path and search parameters, for a given route configuration.
+ * Extracts route data, including path and query parameters, for a given route configuration.
  *
  * Example:
  *
@@ -171,7 +171,7 @@ type SearchParams<Path extends string> = UnionToIntersection<
  *    params: {
  *      param: DefaultParamValue
  *    }
- *    search: {
+ *    query: {
  *      key: DefaultParamValue,
  *    }
  *  }
@@ -184,9 +184,9 @@ type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
     params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
       ? never
       : PathParams<FlattenedRoutes[RouteId]>;
-    search: IsUnknownType<SearchParams<FlattenedRoutes[RouteId]>> extends true
+    query: IsUnknownType<QueryParams<FlattenedRoutes[RouteId]>> extends true
       ? never
-      : SearchParams<FlattenedRoutes[RouteId]>;
+      : QueryParams<FlattenedRoutes[RouteId]>;
   };
 };
 
@@ -239,25 +239,25 @@ type FlattenRouteConfig<
   : never;
 
 /**
- * Removes parent search parameters from a given route path.
+ * Removes parent query string from a given route path.
  *
  * Example:
  *
  * ```ts
  * type Path =  '/parentpath/?pkey1&pkey2/childpath/?ckey1&ckey2'
  *
- * type Result = RemoveParentSearchParams<Path>;
+ * type Result = RemoveParentQueryString<Path>;
  *
  * // => '/parentpath/childpath/?ckey1&ckey2' }
  * ```
  */
-type RemoveParentSearchParams<Path extends string> = Path extends
-  `${infer Head}${Symbols.SearchParam}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
-  ? RemoveParentSearchParams<`${Head}${Symbols.PathSeparater}${Tail}`>
+type RemoveParentQueryString<Path extends string> = Path extends
+  `${infer Head}${Symbols.Query}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
+  ? RemoveParentQueryString<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 
 /**
- * Removes parent search parameters from the flattened route configuration.
+ * Removes parent query string from the flattened route configuration.
  *
  * Example:
  *
@@ -294,13 +294,13 @@ type RemoveParentSearchParams<Path extends string> = Path extends
 type PrunePaths<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${infer Protocol}:/${infer Rest}` // Is absolute path?
-      ? `${Protocol}:/${RemoveParentSearchParams<Rest>}`
-      : RemoveParentSearchParams<Config[RouteId]>;
+      ? `${Protocol}:/${RemoveParentQueryString<Rest>}`
+      : RemoveParentQueryString<Config[RouteId]>;
   }
   : never;
 
 /**
- * Flattens the route configuration object and removes parent search parameters.
+ * Flattens the route configuration object.
  *
  * Example:
  *
@@ -340,18 +340,18 @@ type FlatRoutes<Config> = PrunePaths<FlattenRouteConfig<Config>>;
 type EmptyObject = Record<string, never>;
 
 /**
- * Extracts path and search parameters for a given route.
+ * Extracts path and query parameters for a given route.
  */
 type ParamArgs<
   Config extends FlatRouteConfig,
   RouteId extends keyof Config,
 > = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
-  ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
+  ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
   : IsUnknownType<ExtractRouteData<Config>[RouteId]["params"]> extends true
-    ? [undefined?, ExtractRouteData<Config>[RouteId]["search"]?]
+    ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
   : [
     ExtractRouteData<Config>[RouteId]["params"],
-    ExtractRouteData<Config>[RouteId]["search"]?,
+    ExtractRouteData<Config>[RouteId]["query"]?,
   ];
 
 export type {
