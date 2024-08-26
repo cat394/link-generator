@@ -58,23 +58,23 @@ bunx jsr add @kokomi/link-generator
 
    ```ts
    import {
-   	createLinkGenerator,
-   	flattenRouteConfig,
-   	type RouteConfig,
+     createLinkGenerator,
+     flattenRouteConfig,
+     type RouteConfig,
    } from "@kokomi/link-generator";
 
    const routeConfig = {
-   	home: {
-   		path: "/",
-   	},
-   	users: {
-   		path: "/users",
-   		children: {
-   			user: {
-   				path: "/:userid",
-   			},
-   		},
-   	},
+     home: {
+       path: "/",
+     },
+     users: {
+       path: "/users",
+       children: {
+         user: {
+           path: "/:userid",
+         },
+       },
+     },
    } as const satisfies RouteConfig;
    ```
 
@@ -113,9 +113,9 @@ Example:
 
    ```ts
    const routeConfig = {
-   	post: {
-   		path: "/posts/:postid?page",
-   	},
+     post: {
+       path: "/posts/:postid?page",
+     },
    } as const satisfies RouteConfig;
    ```
 
@@ -160,10 +160,13 @@ a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 
 - **Union type**
 
-If you want to be strict and require that params and query only accept certain values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
+If you want to be strict and require that params and query only accept certain
+values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
 
-> ![NOTE]
-> if you specify a basic type such as `<(string|number)>`, it will become a string union type such as `"string" | "number"`. Strings that can be converted to `true`, `false`, or `number` types will be automatically converted.
+> ![NOTE] if you specify a basic type such as `<(string|number)>`, it will
+> become a string union type such as `"string" | "number"`. Strings that can be
+> converted to `true`, `false`, or `number` types will be automatically
+> converted.
 
 Example:
 
@@ -172,18 +175,18 @@ Example:
 
    ```ts
    const routeConfig = {
-   	user: {
-   		path: "/users/:userid<string>",
-   	},
-   	post: {
-   		path: "/post/:postid<number>",
-   	},
-   	news: {
-   		path: "/news?is_archived<boolean>",
-   	},
-   	category: {
-   		path: "/categories/:categoryid<(a|10|false)>",
-   	},
+     user: {
+       path: "/users/:userid<string>",
+     },
+     post: {
+       path: "/post/:postid<number>",
+     },
+     news: {
+       path: "/news?is_archived<boolean>",
+     },
+     category: {
+       path: "/categories/:categoryid<(a|10|false)>",
+     },
    } as const satisfies RouteConfig;
    ```
 
@@ -221,16 +224,16 @@ Example:
 
 Parameter value types are `string | number | boolean` by default.
 
-If you want query parameter value to be optional (receive undefined), you can put
-`?` after the parameter.
+If you want query parameter value to be optional (receive undefined), you can
+put `?` after the parameter.
 
 Example:
 
 ```ts
 const routeConfig = {
-	product: {
-		path: "/products?size?&category",
-	},
+  product: {
+    path: "/products?size?&category",
+  },
 } as const satisfies RouteConfig;
 
 // ... create a link generator
@@ -247,25 +250,25 @@ Example:
 
 ```ts
 const routeConfig = {
-	external: {
-		path: "https://",
-		children: {
-			youtube: {
-				path: "youtube.com",
-				children: {
-					video: {
-						path: "/watch?videoid",
-					},
-				},
-			},
-		},
-	},
+  external: {
+    path: "https://",
+    children: {
+      youtube: {
+        path: "youtube.com",
+        children: {
+          video: {
+            path: "/watch?videoid",
+          },
+        },
+      },
+    },
+  },
 } as const satisfies RouteConfig;
 
 // ...create a link generator
 
 const youtubeLink = link("external/youtube/watch", undefined, {
-	videoid: "123",
+  videoid: "123",
 });
 // => 'https://youtube.com/watch?123'
 ```
@@ -277,12 +280,12 @@ as shown below.
 
 ```ts
 const routeConfig = {
-	user: {
-		path: "users/:userid",
-	},
-	news: {
-		path: "news?is_archived<boolean>",
-	},
+  user: {
+    path: "users/:userid",
+  },
+  news: {
+    path: "news?is_archived<boolean>",
+  },
 } as const satisfies RouteConfig;
 
 const flatRouteConfig = flattenRouteConfig(routeConfig);
@@ -314,10 +317,10 @@ unique by prefixing them with the parent route id.
 
 ```ts
 const obj = {
-	routeid: {},
+  routeid: {},
 
-	// Type error! An object literal cannot have multiple properties with the same name.
-	routeid: {},
+  // Type error! An object literal cannot have multiple properties with the same name.
+  routeid: {},
 };
 ```
 
@@ -328,17 +331,17 @@ unique, the child route ids will also be unique by necessity.
 
 ```ts
 const obj = {
-	parent1: {
-		children: {
-			child1: {},
-		},
-	},
+  parent1: {
+    children: {
+      child1: {},
+    },
+  },
 
-	parent2: {
-		children: {
-			child1: {},
-		},
-	},
+  parent2: {
+    children: {
+      child1: {},
+    },
+  },
 };
 ```
 
