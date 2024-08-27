@@ -6,7 +6,7 @@ import {
   flattenRouteConfig,
   type RouteConfig,
 } from "../src/mod.ts";
-import type { ExtractRouteData, DefaultParamValue } from "../src/types.ts";
+import type { DefaultParamValue, ExtractRouteData } from "../src/types.ts";
 
 const routeConfig = {
   staticRoute: {
@@ -165,16 +165,16 @@ Deno.test("ExtractRouteData type", async (t) => {
       type StaticRoute = RouteData["staticRoute"];
       assertType<IsExact<StaticRoute["path"], "/">>(true);
     });
-    
+
     await t.step("dynamic path", () => {
       type DynamicRoute = RouteData["dynamicRoute/depth1"];
-      assertType<IsExact<DynamicRoute["path"], "/dynamic/:param1">>(true);  
+      assertType<IsExact<DynamicRoute["path"], "/dynamic/:param1">>(true);
     });
 
     await t.step("should exclude query parts", () => {
       type QueryRoute = RouteData["withQueryRoute/singleParam"];
       assertType<IsExact<QueryRoute["path"], "/query">>(true);
-    })
+    });
   });
 
   await t.step("static path params and query type is all never", () => {
