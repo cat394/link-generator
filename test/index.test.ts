@@ -160,9 +160,21 @@ Deno.test("flatten route config type", () => {
 
 Deno.test("ExtractRouteData type", async (t) => {
   type RouteData = ExtractRouteData<FlatResult>;
-  await t.step("path type", () => {
-    type SampleRoute = RouteData["dynamicRoute/depth1"];
-    assertType<IsExact<SampleRoute["path"], "/dynamic/:param1">>(true);
+  await t.step("path type", async (t) => {
+    await t.step("static path", () => {
+      type StaticRoute = RouteData["staticRoute"];
+      assertType<IsExact<StaticRoute["path"], "/">>(true);
+    });
+    
+    await t.step("dynamic path", () => {
+      type DynamicRoute = RouteData["dynamicRoute/depth1"];
+      assertType<IsExact<DynamicRoute["path"], "/dynamic/:param1">>(true);  
+    });
+
+    await t.step("should exclude query parts", () => {
+      type QueryRoute = RouteData["withQueryRoute/singleParam"];
+      assertType<IsExact<QueryRoute["path"], "/query">>(true);
+    })
   });
 
   await t.step("static path params and query type is all never", () => {
