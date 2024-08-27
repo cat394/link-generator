@@ -105,9 +105,7 @@ bunx jsr add @kokomi/link-generator
 
 ## Advanced Topics
 
-### Search Parameters
-
-> As of version 5, search parameters no longer need to be preceded by a `/`.
+### Query
 
 Example:
 
@@ -115,7 +113,7 @@ Example:
 
    ```ts
    const routeConfig = {
-     posts: {
+     post: {
        path: "/posts/:postid?page",
      },
    } as const satisfies RouteConfig;
@@ -133,7 +131,7 @@ Example:
    the query parameter that was required when defining the path.
 
    ```ts
-   const postpage = link("posts", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
+   const postpage = link("post", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
 ### Constraint Fields
@@ -160,14 +158,15 @@ parameter name followed by the string `number`, as in `/:id<number>`.
 You can narrow down the id to a boolean type by defining a condition field with
 a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 
-- **String or Number literal union type**
+- **Union type**
 
-You can create a literal type for those values by writing `(Literal|Union)` for
-the condition followed by the parameter and separated by the `|` sign, as in
-`/id<(a|b|10)>`. If the value can be converted to a numeric value, it is
-inferred as a numeric literal type. To define the search parameter for a route,
-add a search property to the route configuration object. The search property
-should be an object with keys as search parameter names and values as types.
+If you want to be strict and require that params and query only accept certain
+values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
+
+> ![NOTE] if you specify a basic type such as `<(string|number)>`, it will
+> become a string union type such as `"string" | "number"`. Strings that can be
+> converted to `true`, `false`, or `number` types will be automatically
+> converted.
 
 Example:
 
@@ -216,20 +215,17 @@ Example:
 
    const postpage = link("post", { postid: 1 }); // postid only accept number type!
 
-   const newspage = link("news", undefined, { is_archived: true }); // is_archived search parameter only accept boolean type!
+   const newspage = link("news", undefined, { is_archived: true }); // is_archived query only accept boolean type!
 
    const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
 ### Optional Type
 
-> Starting with version 5, path parameters can no longer be optional, only
-> search parameters can be optional.
-
 Parameter value types are `string | number | boolean` by default.
 
-If you want some parameter value to be optional (receive undefined), you can put
-`?` after the parameter.
+If you want query parameter value to be optional (receive undefined), you can
+put `?` after the parameter.
 
 Example:
 
@@ -242,14 +238,10 @@ const routeConfig = {
 
 // ... create a link generator
 
-const productPage = link("product", { productid: undefined });
+const productPage = link("product", { size: undefined });
 ```
 
 ### Absolute Paths
-
-Starting with version 3.0.0, absolute paths are resolved in a similar manner to
-relative paths, which means that the `*` prefix that was previously required
-when defining an absolute paths is no longer necessary.
 
 **Absolute paths are specially type-handled so do not include a `/` in front of
 the domain.**
@@ -273,9 +265,9 @@ const routeConfig = {
   },
 } as const satisfies RouteConfig;
 
-// ... create a link generator
+// ...create a link generator
 
-const youtubeLink = link("external/youtube/video", undefined, {
+const youtubeLink = link("external/youtube/watch", undefined, {
   videoid: "123",
 });
 // => 'https://youtube.com/watch?123'
@@ -304,12 +296,12 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 //     user: {
 //         path: "users/:userid";
 //         params: Record<"userid", DefaultParamValue>;
-//         search: never;
+//         query: never;
 //     };
 //     news: {
 //         path: "news/?is_archived<boolean>";
 //         params: never;
-//         search: Record<"is_archived", boolean>;
+//         query: Record<"is_archived", boolean>;
 //     };
 // }
 ```

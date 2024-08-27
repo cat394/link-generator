@@ -84,7 +84,7 @@ function isRootPath(path: string): boolean {
 }
 
 export function removeSearchArea(path: string): string {
-  const searchAreaStartIndex = path.indexOf(Symbols.SearchParam);
+  const searchAreaStartIndex = path.indexOf(Symbols.Query);
 
   const isExistSearchArea = searchAreaStartIndex > 0;
 

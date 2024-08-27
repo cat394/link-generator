@@ -1,11 +1,12 @@
-import { assertEquals } from "$std/assert/mod.ts";
-import { describe, it } from "https://deno.land/std@0.224.0/testing/bdd.ts";
+import { assertEquals } from "@std/assert";
+import { assertType, type IsExact } from "@std/testing/types";
 import {
   createLinkGenerator,
   type FlatRoutes,
   flattenRouteConfig,
   type RouteConfig,
 } from "../src/mod.ts";
+import type { DefaultParamValue, ExtractRouteData } from "../src/types.ts";
 
 const routeConfig = {
   staticRoute: {
@@ -44,8 +45,8 @@ const routeConfig = {
           },
         },
       },
-      searchParam: {
-        path: "/searchParam",
+      query: {
+        path: "/query",
         children: {
           stringConstraint: {
             path: "?key<string>",
@@ -63,8 +64,8 @@ const routeConfig = {
       },
     },
   },
-  withSearchParamsRoute: {
-    path: "/search",
+  withQueryRoute: {
+    path: "/query",
     children: {
       singleParam: {
         path: "?key",
@@ -81,19 +82,19 @@ const routeConfig = {
     path: "/mix",
     children: {
       signle: {
-        path: "/:param1?searchParam1",
+        path: "/:param1?query",
       },
       multipleParams: {
-        path: "/:param2/:param3?searchParam1",
+        path: "/:param2/:param3?query1",
       },
-      multipleSearchParams: {
-        path: "/:param3?searchParam1&searchParam2",
+      multipleQuery: {
+        path: "/:param3?query1&query2",
       },
       nested: {
-        path: "/nested?searchParam1",
+        path: "/nested?query1",
         children: {
           depth1: {
-            path: "/:param1?searchParam2",
+            path: "/:param1?query2",
           },
         },
       },
@@ -130,213 +131,323 @@ const flatResult = {
     "/constraint/param/:param<boolean>",
   "constraintRoute/param/unionConstraint":
     "/constraint/param/:param<(a|1|false)>",
-  "constraintRoute/searchParam": "/constraint/searchParam",
-  "constraintRoute/searchParam/stringConstraint":
-    "/constraint/searchParam?key<string>",
-  "constraintRoute/searchParam/numberConstraint":
-    "/constraint/searchParam?key<number>",
-  "constraintRoute/searchParam/booleanConstraint":
-    "/constraint/searchParam?key<boolean>",
-  "constraintRoute/searchParam/unionConstraint":
-    "/constraint/searchParam?key<(a|1|false)>",
-  withSearchParamsRoute: "/search",
-  "withSearchParamsRoute/singleParam": "/search?key",
-  "withSearchParamsRoute/multiParams": "/search?key1&key2",
-  "withSearchParamsRoute/optionalParam": "/search?key1?&key2",
+  "constraintRoute/query": "/constraint/query",
+  "constraintRoute/query/stringConstraint": "/constraint/query?key<string>",
+  "constraintRoute/query/numberConstraint": "/constraint/query?key<number>",
+  "constraintRoute/query/booleanConstraint": "/constraint/query?key<boolean>",
+  "constraintRoute/query/unionConstraint": "/constraint/query?key<(a|1|false)>",
+  withQueryRoute: "/query",
+  "withQueryRoute/singleParam": "/query?key",
+  "withQueryRoute/multiParams": "/query?key1&key2",
+  "withQueryRoute/optionalParam": "/query?key1?&key2",
   mixRoute: "/mix",
-  "mixRoute/signle": "/mix/:param1?searchParam1",
-  "mixRoute/multipleParams": "/mix/:param2/:param3?searchParam1",
-  "mixRoute/multipleSearchParams": "/mix/:param3?searchParam1&searchParam2",
-  "mixRoute/nested": "/mix/nested?searchParam1",
-  "mixRoute/nested/depth1": "/mix/nested/:param1?searchParam2",
+  "mixRoute/signle": "/mix/:param1?query",
+  "mixRoute/multipleParams": "/mix/:param2/:param3?query1",
+  "mixRoute/multipleQuery": "/mix/:param3?query1&query2",
+  "mixRoute/nested": "/mix/nested?query1",
+  "mixRoute/nested/depth1": "/mix/nested/:param1?query2",
   absoluteRoute: "protocol://",
   "absoluteRoute/domain": "protocol://example.com",
   "absoluteRoute/domain/static": "protocol://example.com/staticPage",
   "absoluteRoute/domain/withParam": "protocol://example.com/:param?key",
 } as const satisfies FlatRoutes<typeof routeConfig>;
 
-Deno.test("format function test", () => {
-  const flatConfig = flattenRouteConfig(routeConfig);
+type FlatResult = FlatRoutes<typeof routeConfig>;
 
-  assertEquals(flatResult, flatConfig);
+Deno.test("flatten route config type", () => {
+  assertType<IsExact<FlatResult, typeof flatResult>>(true);
 });
 
-describe("generator function test", () => {
-  const flatConfig = flattenRouteConfig(routeConfig);
+Deno.test("ExtractRouteData type", async (t) => {
+  type RouteData = ExtractRouteData<FlatResult>;
+  await t.step("path type", async (t) => {
+    await t.step("static path", () => {
+      type StaticRoute = RouteData["staticRoute"];
+      assertType<IsExact<StaticRoute["path"], "/">>(true);
+    });
 
-  const link = createLinkGenerator(flatConfig);
+    await t.step("dynamic path", () => {
+      type DynamicRoute = RouteData["dynamicRoute/depth1"];
+      assertType<IsExact<DynamicRoute["path"], "/dynamic/:param1">>(true);
+    });
 
-  it("static path", () => {
-    assertEquals("/", link("staticRoute"));
+    await t.step("should exclude query parts", () => {
+      type QueryRoute = RouteData["withQueryRoute/singleParam"];
+      assertType<IsExact<QueryRoute["path"], "/query">>(true);
+    });
   });
 
-  describe("path with params", () => {
-    it("with single params", () => {
-      assertEquals(
-        "/dynamic/param1",
-        link("dynamicRoute/depth1", { param1: "param1" }),
+  await t.step("static path params and query type is all never", () => {
+    type StaticRoute = RouteData["staticRoute"];
+    assertType<IsExact<StaticRoute["params"], never>>(true);
+    assertType<IsExact<StaticRoute["query"], never>>(true);
+  });
+
+  await t.step("path params type", async (t) => {
+    await t.step("default params type", () => {
+      type DynamicRoute = RouteData["dynamicRoute/depth1"];
+      assertType<
+        IsExact<DynamicRoute["params"], { param1: DefaultParamValue }>
+      >(true);
+    });
+
+    await t.step("string params type", () => {
+      type DynamicRouteWithStringParams =
+        RouteData["constraintRoute/param/stringConstraint"];
+      assertType<
+        IsExact<DynamicRouteWithStringParams["params"], { param: string }>
+      >(true);
+    });
+
+    await t.step("number params type", () => {
+      type DynamicRouteWithNumberParams =
+        RouteData["constraintRoute/param/numberConstraint"];
+      type Params = DynamicRouteWithNumberParams["params"];
+      type Query = DynamicRouteWithNumberParams["query"];
+      assertType<IsExact<Params, { param: number }>>(true);
+    });
+
+    await t.step("boolean params type", () => {
+      type DynamicRouteWithBooleanParams =
+        RouteData["constraintRoute/param/booleanConstraint"];
+      assertType<
+        IsExact<DynamicRouteWithBooleanParams["params"], { param: boolean }>
+      >(true);
+    });
+
+    await t.step("union params type", () => {
+      type DynamicRouteWithUnionParams =
+        RouteData["constraintRoute/param/unionConstraint"];
+      assertType<
+        IsExact<
+          DynamicRouteWithUnionParams["params"],
+          { param: "a" | 1 | false }
+        >
+      >(true);
+    });
+  });
+
+  await t.step("query type", async (t) => {
+    await t.step("default query type", () => {
+      type QueryRoute = RouteData["withQueryRoute/singleParam"];
+      assertType<IsExact<QueryRoute["query"], { key: DefaultParamValue }>>(
+        true,
       );
     });
 
-    it("with multiple params", () => {
+    await t.step("string query type", () => {
+      type StringQueryRoute =
+        RouteData["constraintRoute/query/stringConstraint"];
+      assertType<IsExact<StringQueryRoute["query"], { key: string }>>(true);
+    });
+
+    await t.step("number query type", () => {
+      type NumberQueryRoute =
+        RouteData["constraintRoute/query/numberConstraint"];
+      assertType<IsExact<NumberQueryRoute["query"], { key: number }>>(true);
+    });
+
+    await t.step("boolean query type", () => {
+      type BooleanQueryRoute =
+        RouteData["constraintRoute/query/booleanConstraint"];
+      assertType<IsExact<BooleanQueryRoute["query"], { key: boolean }>>(true);
+    });
+
+    await t.step("union query type", () => {
+      type UnionQueryRoute = RouteData["constraintRoute/query/unionConstraint"];
+      assertType<IsExact<UnionQueryRoute["query"], { key: "a" | 1 | false }>>(
+        true,
+      );
+    });
+
+    await t.step("optional query type", () => {
+      type OptionalQueryRoute = RouteData["withQueryRoute/optionalParam"];
+      assertType<
+        IsExact<
+          OptionalQueryRoute["query"],
+          Partial<{ key1: DefaultParamValue }> & { key2: DefaultParamValue }
+        >
+      >(true);
+    });
+  });
+});
+
+Deno.test("flattenRouteConfig", () => {
+  const flatConfig = flattenRouteConfig(routeConfig);
+  assertEquals(flatResult, flatConfig);
+});
+
+Deno.test("generator function", async (t) => {
+  const flatConfig = flattenRouteConfig(routeConfig);
+  const link = createLinkGenerator(flatConfig);
+
+  await t.step("static path", () => {
+    assertEquals("/", link("staticRoute"));
+  });
+
+  await t.step("path with params", async (t) => {
+    await t.step("with single params", () => {
       assertEquals(
-        "/dynamic/dynamicPart1/depth2/dynamicPart2",
+        link("dynamicRoute/depth1", { param1: "param1" }),
+        "/dynamic/param1",
+      );
+    });
+
+    await t.step("with multiple params", () => {
+      assertEquals(
         link("dynamicRoute/depth1/depth2", {
           param1: "dynamicPart1",
           param2: "dynamicPart2",
         }),
+        "/dynamic/dynamicPart1/depth2/dynamicPart2",
       );
     });
 
-    describe("params with constraint field", () => {
-      it("string constraint", () => {
+    await t.step("params with constraint field", async (t) => {
+      await t.step("string constraint", () => {
         assertEquals(
-          "/constraint/param/dynamicPart1",
           link("constraintRoute/param/stringConstraint", {
             param: "dynamicPart1",
           }),
+          "/constraint/param/dynamicPart1",
         );
       });
 
-      it("number constraint", () => {
+      await t.step("number constraint", () => {
         assertEquals(
-          "/constraint/param/1",
           link("constraintRoute/param/numberConstraint", { param: 1 }),
+          "/constraint/param/1",
         );
       });
 
-      it("boolean constraint", () => {
+      await t.step("boolean constraint", () => {
         assertEquals(
-          "/constraint/param/true",
           link("constraintRoute/param/booleanConstraint", {
             param: true,
           }),
+          "/constraint/param/true",
         );
       });
 
-      describe("Union constraint", () => {
-        it("Union constraint string element", () => {
+      await t.step("Union constraint", async (t) => {
+        await t.step("Union constraint string element", () => {
           assertEquals(
-            "/constraint/param/a",
             link("constraintRoute/param/unionConstraint", {
               param: "a",
             }),
+            "/constraint/param/a",
           );
         });
 
-        it("Union constraint number element", () => {
+        await t.step("Union constraint number element", () => {
           assertEquals(
-            "/constraint/param/1",
             link("constraintRoute/param/numberConstraint", {
               param: 1,
             }),
+            "/constraint/param/1",
           );
         });
 
-        it("Union constraint boolean element", () => {
+        await t.step("Union constraint boolean element", () => {
           assertEquals(
-            "/constraint/param/false",
             link("constraintRoute/param/unionConstraint", {
               param: false,
             }),
+            "/constraint/param/false",
           );
         });
       });
     });
   });
 
-  describe("path with search params", () => {
-    it("all search params have values set", () => {
+  await t.step("path with query", async (t) => {
+    await t.step("all query have values set", () => {
       assertEquals(
-        "/search?key=value",
-        link("withSearchParamsRoute/singleParam", undefined, { key: "value" }),
+        link("withQueryRoute/singleParam", undefined, { key: "value" }),
+        "/query?key=value",
       );
     });
 
-    it("some search params have values set", () => {
+    await t.step("some query have values set", () => {
       assertEquals(
-        "/search?key1=value1&key2=value2",
-        link("withSearchParamsRoute/multiParams", undefined, {
+        link("withQueryRoute/multiParams", undefined, {
           key1: "value1",
           key2: "value2",
         }),
+        "/query?key1=value1&key2=value2",
       );
     });
 
-    it("optional search param have value set", () => {
+    await t.step("optional query have value set", () => {
       assertEquals(
-        "/search?key1=value1&key2=value2",
-        link("withSearchParamsRoute/optionalParam", undefined, {
+        link("withQueryRoute/optionalParam", undefined, {
           key1: "value1",
           key2: "value2",
         }),
+        "/query?key1=value1&key2=value2",
       );
     });
 
-    it("optional search param have not value set", () => {
+    await t.step("optional query have not value set", () => {
       assertEquals(
-        "/search?key2=value2",
-        link("withSearchParamsRoute/optionalParam", undefined, {
+        link("withQueryRoute/optionalParam", undefined, {
           key2: "value2",
         }),
+        "/query?key2=value2",
       );
     });
 
-    it("all search params have the value undefined", () => {
-      assertEquals(
-        "/search",
-        link("withSearchParamsRoute/multiParams", undefined),
-      );
+    await t.step("all query have the value undefined", () => {
+      assertEquals(link("withQueryRoute/multiParams", undefined), "/query");
     });
 
-    describe("search params with constraint filed", () => {
-      it("string constraint", () => {
+    await t.step("query with constraint filed", async (t) => {
+      await t.step("string constraint", () => {
         assertEquals(
-          "/constraint/searchParam?key=value",
-          link("constraintRoute/searchParam/stringConstraint", undefined, {
+          link("constraintRoute/query/stringConstraint", undefined, {
             key: "value",
           }),
+          "/constraint/query?key=value",
         );
       });
 
-      it("number constraint", () => {
+      await t.step("number constraint", () => {
         assertEquals(
-          "/constraint/searchParam?key=1",
-          link("constraintRoute/searchParam/numberConstraint", undefined, {
+          link("constraintRoute/query/numberConstraint", undefined, {
             key: 1,
           }),
+          "/constraint/query?key=1",
         );
       });
 
-      it("boolean constraint", () => {
+      await t.step("boolean constraint", () => {
         assertEquals(
-          "/constraint/searchParam?key=true",
-          link("constraintRoute/searchParam/booleanConstraint", undefined, {
+          link("constraintRoute/query/booleanConstraint", undefined, {
             key: true,
           }),
+          "/constraint/query?key=true",
         );
       });
     });
   });
 
-  describe("absolute path", () => {
-    it("static page", () => {
+  await t.step("absolute path", async (t) => {
+    await t.step("static page", () => {
       assertEquals(
-        "protocol://example.com/staticPage",
         link("absoluteRoute/domain/static"),
+        "protocol://example.com/staticPage",
       );
     });
 
-    it("with param and with search param", () => {
+    await t.step("with param and with query", () => {
       assertEquals(
-        "protocol://example.com/dynamicPage",
         link("absoluteRoute/domain/withParam", { param: "dynamicPage" }),
+        "protocol://example.com/dynamicPage",
       );
     });
 
-    it("with param and no search param", () => {
+    await t.step("with param and no query", () => {
       assertEquals(
-        "protocol://example.com/dynamicPage?key=value",
         link(
           "absoluteRoute/domain/withParam",
           { param: "dynamicPage" },
@@ -344,6 +455,7 @@ describe("generator function test", () => {
             key: "value",
           },
         ),
+        "protocol://example.com/dynamicPage?key=value",
       );
     });
   });
