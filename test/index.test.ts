@@ -161,72 +161,113 @@ Deno.test("flatten route config type", () => {
 
 Deno.test("ExtractRouteData type", async (t) => {
   type RouteData = ExtractRouteData<FlatResult>;
+  await t.step("path type", () => {
+    type SampleRoute = RouteData["dynamicRoute/depth1"];
+    assertType<IsExact<SampleRoute["path"], "/dynamic/:param1">>(true);
+  });
+
+  await t.step("static path params and query type is all never", () => {
+    type StaticRoute = RouteData["staticRoute"];
+    assertType<IsExact<StaticRoute["params"], never>>(true);
+    assertType<IsExact<StaticRoute["query"], never>>(true);
+  });
+
   await t.step("path params type", async (t) => {
-    await t.step("static path params and query type is all never", () => {
-      type StaticRoute = RouteData["staticRoute"];
-      type Params = StaticRoute["params"];
-      type Query = StaticRoute["query"];
-      assertType<IsExact<Params, never>>(true);
-      assertType<IsExact<Query, never>>(true);
+    await t.step("default params type", () => {
+      type DynamicRoute = RouteData["dynamicRoute/depth1"];
+      assertType<
+        IsExact<DynamicRoute["params"], { param1: DefaultParamValue }>
+      >(true);
     });
 
-    await t.step("dynamic default params type", () => {
-      type DynamicRouteParams = RouteData["dynamicRoute/depth1"];
-      type Params = DynamicRouteParams["params"];
-      type Query = DynamicRouteParams["query"];
-      assertType<IsExact<Params, { param1: DefaultParamValue }>>(true);
-      assertType<IsExact<Query, never>>(true);
-    });
-
-    await t.step("dynamic string params type", () => {
-      type DynamicRouteWithString =
+    await t.step("string params type", () => {
+      type DynamicRouteWithStringParams =
         RouteData["constraintRoute/param/stringConstraint"];
-      type Params = DynamicRouteWithString["params"];
-      type Query = DynamicRouteWithString["query"];
-      assertType<IsExact<Params, { param: string }>>(true);
-      assertType<IsExact<Query, never>>(true);
+      assertType<
+        IsExact<DynamicRouteWithStringParams["params"], { param: string }>
+      >(true);
     });
 
-    await t.step("dynamic number params type", () => {
+    await t.step("number params type", () => {
       type DynamicRouteWithNumberParams =
         RouteData["constraintRoute/param/numberConstraint"];
       type Params = DynamicRouteWithNumberParams["params"];
       type Query = DynamicRouteWithNumberParams["query"];
       assertType<IsExact<Params, { param: number }>>(true);
-      assertType<IsExact<Query, never>>(true);
     });
 
-    await t.step("dynamic boolean params type", () => {
+    await t.step("boolean params type", () => {
       type DynamicRouteWithBooleanParams =
         RouteData["constraintRoute/param/booleanConstraint"];
-      type Params = DynamicRouteWithBooleanParams["params"];
-      type Query = DynamicRouteWithBooleanParams["query"];
-      assertType<IsExact<Params, { param: boolean }>>(true);
-      assertType<IsExact<Query, never>>(true);
+      assertType<
+        IsExact<DynamicRouteWithBooleanParams["params"], { param: boolean }>
+      >(true);
     });
 
-    await t.step("dynamic union params type", () => {
+    await t.step("union params type", () => {
       type DynamicRouteWithUnionParams =
         RouteData["constraintRoute/param/unionConstraint"];
-      type Params = DynamicRouteWithUnionParams["params"];
-      type Query = DynamicRouteWithUnionParams["query"];
-      assertType<IsExact<Params, { param: "a" | 1 | false }>>(true);
-      assertType<IsExact<Query, never>>(true);
+      assertType<
+        IsExact<
+          DynamicRouteWithUnionParams["params"],
+          { param: "a" | 1 | false }
+        >
+      >(true);
     });
   });
 
-  await t.step("query type", () => {});
+  await t.step("query type", async (t) => {
+    await t.step("default query type", () => {
+      type QueryRoute = RouteData["withQueryRoute/singleParam"];
+      assertType<IsExact<QueryRoute["query"], { key: DefaultParamValue }>>(
+        true,
+      );
+    });
+
+    await t.step("string query type", () => {
+      type StringQueryRoute =
+        RouteData["constraintRoute/query/stringConstraint"];
+      assertType<IsExact<StringQueryRoute["query"], { key: string }>>(true);
+    });
+
+    await t.step("number query type", () => {
+      type NumberQueryRoute =
+        RouteData["constraintRoute/query/numberConstraint"];
+      assertType<IsExact<NumberQueryRoute["query"], { key: number }>>(true);
+    });
+
+    await t.step("boolean query type", () => {
+      type BooleanQueryRoute =
+        RouteData["constraintRoute/query/booleanConstraint"];
+      assertType<IsExact<BooleanQueryRoute["query"], { key: boolean }>>(true);
+    });
+
+    await t.step("union query type", () => {
+      type UnionQueryRoute = RouteData["constraintRoute/query/unionConstraint"];
+      assertType<IsExact<UnionQueryRoute["query"], { key: "a" | 1 | false }>>(
+        true,
+      );
+    });
+
+    await t.step("optional query type", () => {
+      type OptionalQueryRoute = RouteData["withQueryRoute/optionalParam"];
+      assertType<
+        IsExact<
+          OptionalQueryRoute["query"],
+          Partial<{ key1: DefaultParamValue }> & { key2: DefaultParamValue }
+        >
+      >(true);
+    });
+  });
 });
 
 Deno.test("flattenRouteConfig", () => {
   const flatConfig = flattenRouteConfig(routeConfig);
-
   assertEquals(flatResult, flatConfig);
 });
 
 Deno.test("generator function", async (t) => {
   const flatConfig = flattenRouteConfig(routeConfig);
-
   const link = createLinkGenerator(flatConfig);
 
   await t.step("static path", () => {
