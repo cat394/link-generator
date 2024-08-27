@@ -6,8 +6,7 @@ import {
   flattenRouteConfig,
   type RouteConfig,
 } from "../src/mod.ts";
-import type { ExtractRouteData } from "../src/types.ts";
-import type { DefaultParamValue } from "../src/types.ts";
+import type { ExtractRouteData, DefaultParamValue } from "../src/types.ts";
 
 const routeConfig = {
   staticRoute: {
