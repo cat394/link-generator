@@ -1,9 +1,9 @@
 import type {
-	DefaultParamValue,
-	FlatRouteConfig,
-	LinkGenerator,
-	Param,
-	ParamArgs,
+  DefaultParamValue,
+  FlatRouteConfig,
+  LinkGenerator,
+  Param,
+  ParamArgs,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
 import { remove_query_area } from "./utils.ts";
@@ -43,78 +43,78 @@ import { remove_query_area } from "./utils.ts";
  * @returns A function to generate links.
  */
 export function create_link_generator<Config extends FlatRouteConfig>(
-	route_config: Config
+  route_config: Config,
 ): LinkGenerator<Config> {
-	return <RouteId extends keyof Config>(
-		routeId: RouteId,
-		...params: ParamArgs<Config, RouteId>
-	): string => {
-		const path_template = route_config[routeId];
+  return <RouteId extends keyof Config>(
+    routeId: RouteId,
+    ...params: ParamArgs<Config, RouteId>
+  ): string => {
+    const path_template = route_config[routeId];
 
-		const path_params = params[0];
+    const path_params = params[0];
 
-		const query_params = params[1];
+    const query_params = params[1];
 
-		let path: string = path_template;
+    let path: string = path_template;
 
-		path = remove_query_area(path);
+    path = remove_query_area(path);
 
-		if (!path_params && !query_params) {
-			return path;
-		}
+    if (!path_params && !query_params) {
+      return path;
+    }
 
-		if (is_include_constraint_area(path)) {
-			path = remove_constraint_area(path);
-		}
+    if (is_include_constraint_area(path)) {
+      path = remove_constraint_area(path);
+    }
 
-		if (path_params) {
-			path = replace_path_params(path, path_params);
-		}
+    if (path_params) {
+      path = replace_path_params(path, path_params);
+    }
 
-		if (query_params) {
-			const qs = create_query_string(query_params as Param);
+    if (query_params) {
+      const qs = create_query_string(query_params as Param);
 
-			if (qs !== "") {
-				path += `?${qs}`;
-			}
-		}
+      if (qs !== "") {
+        path += `?${qs}`;
+      }
+    }
 
-		return path;
-	};
+    return path;
+  };
 }
 
 function is_include_constraint_area(path: string): boolean {
-	const constraint_open_index = path.indexOf(Symbols.ConstraintOpen);
+  const constraint_open_index = path.indexOf(Symbols.ConstraintOpen);
 
-	return constraint_open_index > 0;
+  return constraint_open_index > 0;
 }
 
 function remove_constraint_area(path: string): string {
-	const constraint_area = new RegExp(
-		`${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
-		"g"
-	);
-	return path.replace(constraint_area, "");
+  const constraint_area = new RegExp(
+    `${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
+    "g",
+  );
+  return path.replace(constraint_area, "");
 }
 
 function replace_path_params(path: string, params: Param): string {
-	const param_area_regex = new RegExp(
-		`${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
-		"g"
-	);
+  const param_area_regex = new RegExp(
+    `${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
+    "g",
+  );
 
-	return path.replace(param_area_regex, (_, param_name) => {
-		const param_value = params[param_name];
-		return encodeURIComponent(param_value);
-	});
+  return path.replace(param_area_regex, (_, param_name) => {
+    const param_value = params[param_name];
+    return encodeURIComponent(param_value);
+  });
 }
 
 function create_query_string(search: Partial<Param>): string {
-	return Object.entries(search)
-		.filter(([_, value]) => value !== "" && value !== undefined)
-		.map(
-			([key, value]) =>
-				`${key}=${encodeURIComponent(value as DefaultParamValue)}`
-		)
-		.join("&");
+  return Object.entries(search)
+    .filter(([_, value]) => value !== "" && value !== undefined)
+    .map(
+      ([key, value]) =>
+        `${key}=${encodeURIComponent(value as DefaultParamValue)}`,
+    )
+    .join("&");
 }
