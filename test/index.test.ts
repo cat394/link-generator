@@ -1,14 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { assertType, type IsExact } from "@std/testing/types";
 import {
-  createLinkGenerator,
+  create_link_generator,
   type FlatRoutes,
-  flattenRouteConfig,
+  flatten_route_config,
   type RouteConfig,
 } from "../src/mod.ts";
 import type { DefaultParamValue, ExtractRouteData } from "../src/types.ts";
 
-const routeConfig = {
+const route_config = {
   staticRoute: {
     path: "/",
   },
@@ -118,7 +118,7 @@ const routeConfig = {
   },
 } as const satisfies RouteConfig;
 
-const flatResult = {
+const flat_result = {
   staticRoute: "/",
   dynamicRoute: "/dynamic",
   "dynamicRoute/depth1": "/dynamic/:param1",
@@ -150,12 +150,12 @@ const flatResult = {
   "absoluteRoute/domain": "protocol://example.com",
   "absoluteRoute/domain/static": "protocol://example.com/staticPage",
   "absoluteRoute/domain/withParam": "protocol://example.com/:param?key",
-} as const satisfies FlatRoutes<typeof routeConfig>;
+} as const satisfies FlatRoutes<typeof route_config>;
 
-type FlatResult = FlatRoutes<typeof routeConfig>;
+type FlatResult = FlatRoutes<typeof route_config>;
 
 Deno.test("flatten route config type", () => {
-  assertType<IsExact<FlatResult, typeof flatResult>>(true);
+  assertType<IsExact<FlatResult, typeof flat_result>>(true);
 });
 
 Deno.test("ExtractRouteData type", async (t) => {
@@ -273,13 +273,13 @@ Deno.test("ExtractRouteData type", async (t) => {
 });
 
 Deno.test("flattenRouteConfig", () => {
-  const flatConfig = flattenRouteConfig(routeConfig);
-  assertEquals(flatResult, flatConfig);
+  const flat_route_config = flatten_route_config(route_config);
+  assertEquals(flat_result, flat_route_config);
 });
 
 Deno.test("generator function", async (t) => {
-  const flatConfig = flattenRouteConfig(routeConfig);
-  const link = createLinkGenerator(flatConfig);
+  const flat_route_config = flatten_route_config(route_config);
+  const link = create_link_generator(flat_route_config);
 
   await t.step("static path", () => {
     assertEquals("/", link("staticRoute"));

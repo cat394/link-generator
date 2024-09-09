@@ -63,7 +63,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
  * Example:
  *
  * ```ts
- * const routeConfig = {
+ * const route_config = {
  *  route1: {
  *    path: '/route1/:param',
  *  }
@@ -132,7 +132,7 @@ type ExtractParams<Segment> = Segment extends
   : never;
 
 type ExtractQueryString<Path extends string> = Path extends
-  `${infer Head}${Symbols.Query}${infer QueryString}` ? QueryString
+  `${string}${Symbols.Query}${infer QueryString}` ? QueryString
   : never;
 
 type PathParams<Path extends string> = UnionToIntersection<
@@ -159,23 +159,27 @@ type ExcludeQueryString<Path extends string> = Path extends
  * Example:
  *
  * ```ts
- * type FlattenedRoutes = {
- *  'parent': '/parentpath/?key1&key2',
+ * type FlatRouteConfig = {
+ *  'parent': '/parentpath?key',
  *  'parent/child': '/parentpath/:param',
  * }
  *
- * type Result = ExtractRouteData<FlattendRoutes>;
+ * type Result = ExtractRouteData<FlatRouteConfig>;
  *
  * // => {
  *  parent: {
- *    path: '/parentpath/:param/?key',
+ *    path: '/parentpath',
  *    params: never,
- *    params: {
- *      param: DefaultParamValue
- *    }
  *    query: {
  *      key: DefaultParamValue,
  *    }
+ *  },
+ *  "parent/child": {
+ *    path: '/parentpath/:param',
+ *    params: {
+ *      param: DefaultParamValue
+ *    },
+ *    query: never;
  *  }
  * }
  * ```
@@ -210,7 +214,7 @@ type NestedKeys<Config> = Config extends RouteConfig ? {
  * Example:
  *
  * ```ts
- * const routeConfig = {
+ * const route_config = {
  *  parent: {
  *    path: '/parentpath',
  *    children: {
@@ -221,7 +225,7 @@ type NestedKeys<Config> = Config extends RouteConfig ? {
  *  }
  * } as const satisfies RouteConfig;
  *
- * type Result = FlattenRouteConfig<typeof routeConfig>;
+ * type Result = FlattenRouteConfig<typeof route_config>;
  *
  * // => { parent: '/parentpath', 'parent/child': '/parentpath/childpath' }
  * ```
@@ -253,9 +257,9 @@ type FlattenRouteConfig<
  * // => '/parentpath/childpath/?ckey1&ckey2' }
  * ```
  */
-type ExcludeParentQueryString<Path extends string> = Path extends
-  `${infer Head}${Symbols.Query}${infer Middle}${Symbols.PathSeparater}${infer Tail}`
-  ? ExcludeParentQueryString<`${Head}${Symbols.PathSeparater}${Tail}`>
+type RemoveParentQueryString<Path extends string> = Path extends
+  `${infer Head}${Symbols.Query}${string}${Symbols.PathSeparater}${infer Tail}`
+  ? RemoveParentQueryString<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 
 /**
@@ -264,7 +268,7 @@ type ExcludeParentQueryString<Path extends string> = Path extends
  * Example:
  *
  * ```ts
- * const routeConfig = {
+ * const route_config = {
  *  parent: {
  *    path: '/parentpath/?pkey1&pkey2',
  *    children: {
@@ -283,7 +287,7 @@ type ExcludeParentQueryString<Path extends string> = Path extends
  *  }
  * } as const satisfies RouteConfig;
  *
- * type Result = PrunePaths<typeof routeConfig>;
+ * type Result = PrunePaths<typeof route_config>;
  *
  * // => {
  *  'parent': '/parentpath/?pkey1&pkey2',
@@ -296,8 +300,8 @@ type ExcludeParentQueryString<Path extends string> = Path extends
 type PrunePaths<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${infer Protocol}:/${infer Rest}` // Is absolute path?
-      ? `${Protocol}:/${ExcludeParentQueryString<Rest>}`
-      : ExcludeParentQueryString<Config[RouteId]>;
+      ? `${Protocol}:/${RemoveParentQueryString<Rest>}`
+      : RemoveParentQueryString<Config[RouteId]>;
   }
   : never;
 
@@ -307,7 +311,7 @@ type PrunePaths<Config> = Config extends FlatRouteConfig ? {
  * Example:
  *
  * ```ts
- * const routeConfig = {
+ * const route_config = {
  *  parent1: {
  *    path: '/parent1path',
  *    children: {
@@ -324,10 +328,9 @@ type PrunePaths<Config> = Config extends FlatRouteConfig ? {
  *      }
  *    }
  *  }
- *
  * } as const satisfies RouteConfig;
  *
- * type Result = FlatRotues<typeof routeConfig>;
+ * type Result = FlatRotues<typeof route_config>;
  *
  * // => {
  *  'parent1': '/parent1path',

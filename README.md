@@ -281,10 +281,10 @@ as shown below.
 ```ts
 const routeConfig = {
   user: {
-    path: "users/:userid",
+    path: "/users/:userid",
   },
   news: {
-    path: "news?is_archived<boolean>",
+    path: "/news?is_archived<boolean>",
   },
 } as const satisfies RouteConfig;
 
@@ -294,12 +294,12 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // ^
 // {
 //     user: {
-//         path: "users/:userid";
+//         path: "/users/:userid";
 //         params: Record<"userid", DefaultParamValue>;
 //         query: never;
 //     };
 //     news: {
-//         path: "news/?is_archived<boolean>";
+//         path: "/news";
 //         params: never;
 //         query: Record<"is_archived", boolean>;
 //     };
