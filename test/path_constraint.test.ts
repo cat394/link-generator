@@ -90,17 +90,17 @@ Deno.test("ExtractRouteData type", () => {
     string_query: {
       path: "/";
       params: never;
-      queries: Record<"key", string>;
+      queries: Partial<Record<"key", string>>;
     };
     number_query: {
       path: "/";
       params: never;
-      queries: Record<"key", number>;
+      queries: Partial<Record<"key", number>>;
     };
     boolean_query: {
       path: "/";
       params: never;
-      queries: Record<"key", boolean>;
+      queries: Partial<Record<"key", boolean>>;
     };
     strings_union_param: {
       path: "/:param";
@@ -120,17 +120,17 @@ Deno.test("ExtractRouteData type", () => {
     strings_union_query: {
       path: "/";
       params: never;
-      queries: Record<"key", "a" | "b" | "c">;
+      queries: Partial<Record<"key", "a" | "b" | "c">>;
     };
     numbers_union_query: {
       path: "/";
       params: never;
-      queries: Record<"key", 1 | 2 | 3>;
+      queries: Partial<Record<"key", 1 | 2 | 3>>;
     };
     mix_union_query: {
       path: "/";
       params: never;
-      queries: Record<"key", "a" | 1 | true>;
+      queries: Partial<Record<"key", "a" | 1 | true>>;
     };
   };
 

@@ -57,12 +57,12 @@ Deno.test("ExtractRouteData type", () => {
     root: {
       path: "/:param";
       params: Record<"param", DefaultParamValue>;
-      queries: Record<"key", DefaultParamValue>;
+      queries: Partial<Record<"key", DefaultParamValue>>;
     };
     with_name: {
       path: "/name/:param";
       params: Record<"param", DefaultParamValue>;
-      queries: Record<"key", DefaultParamValue>;
+      queries: Partial<Record<"key", DefaultParamValue>>;
     };
     nested: {
       path: "/nested";
@@ -72,12 +72,12 @@ Deno.test("ExtractRouteData type", () => {
     "nested/deep": {
       path: "/nested/deep/:child-param";
       params: Record<"child-param", DefaultParamValue>;
-      queries: Record<"key", DefaultParamValue>;
+      queries: Partial<Record<"key", DefaultParamValue>>;
     };
     nested_with_parent_param: {
       path: "/nested/:parent-param";
       params: Record<"parent-param", DefaultParamValue>;
-      queries: Record<"parent-key", DefaultParamValue>;
+      queries: Partial<Record<"parent-key", DefaultParamValue>>;
     };
 
     "nested_with_parent_param/deep": {
@@ -85,7 +85,7 @@ Deno.test("ExtractRouteData type", () => {
       params:
         & Record<"child-param", DefaultParamValue>
         & Record<"parent-param", DefaultParamValue>;
-      queries: Record<"child-key", DefaultParamValue>;
+      queries: Partial<Record<"child-key", DefaultParamValue>>;
     };
   };
 
