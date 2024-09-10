@@ -220,27 +220,6 @@ Example:
    const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
-### Optional Type
-
-Parameter value types are `string | number | boolean` by default.
-
-If you want query parameter value to be optional (receive undefined), you can
-put `?` after the parameter.
-
-Example:
-
-```ts
-const routeConfig = {
-  product: {
-    path: "/products?size?&category",
-  },
-} as const satisfies RouteConfig;
-
-// ... create a link generator
-
-const productPage = link("product", { size: undefined });
-```
-
 ### Absolute Paths
 
 **Absolute paths are specially type-handled so do not include a `/` in front of
@@ -281,10 +260,10 @@ as shown below.
 ```ts
 const routeConfig = {
   user: {
-    path: "users/:userid",
+    path: "/users/:userid",
   },
   news: {
-    path: "news?is_archived<boolean>",
+    path: "/news?is_archived<boolean>",
   },
 } as const satisfies RouteConfig;
 
@@ -294,12 +273,12 @@ type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // ^
 // {
 //     user: {
-//         path: "users/:userid";
+//         path: "/users/:userid";
 //         params: Record<"userid", DefaultParamValue>;
 //         query: never;
 //     };
 //     news: {
-//         path: "news/?is_archived<boolean>";
+//         path: "/news";
 //         params: never;
 //         query: Record<"is_archived", boolean>;
 //     };
