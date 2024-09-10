@@ -150,8 +150,13 @@ type QueryParams<Path extends string> = UnionToIntersection<
   CreateQueryParams<ParseQueryParams<ExtractQueryString<Path>>[number]>
 >;
 
-type ExcludeQueryString<Path extends string> = Path extends
+type RemoveQueryArea<Path extends string> = Path extends
   `${infer RoutePath}?${string}` ? RoutePath : Path;
+
+type RemoveConstraintArea<Path extends string> = Path extends
+  `${infer Head}${Symbols.ConstraintOpen}${string}${Symbols.ConstraintClose}${infer Tail}`
+  ? RemoveConstraintArea<`${Head}${Tail}`>
+  : Path;
 
 /**
  * Extracts route data, including path and query parameters, for a given route configuration.
@@ -186,11 +191,11 @@ type ExcludeQueryString<Path extends string> = Path extends
  */
 type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
   [RouteId in keyof FlattenedRoutes]: {
-    path: ExcludeQueryString<FlattenedRoutes[RouteId]>;
+    path: RemoveConstraintArea<RemoveQueryArea<FlattenedRoutes[RouteId]>>;
     params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
       ? never
       : PathParams<FlattenedRoutes[RouteId]>;
-    query: IsUnknownType<QueryParams<FlattenedRoutes[RouteId]>> extends true
+    queries: IsUnknownType<QueryParams<FlattenedRoutes[RouteId]>> extends true
       ? never
       : QueryParams<FlattenedRoutes[RouteId]>;
   };
@@ -245,21 +250,21 @@ type FlattenRouteConfig<
   : never;
 
 /**
- * Removes parent query string from a given route path.
+ * Removes parent query area from a given route path.
  *
  * Example:
  *
  * ```ts
  * type Path =  '/parentpath/?pkey1&pkey2/childpath/?ckey1&ckey2'
  *
- * type Result = RemoveParentQueryString<Path>;
+ * type Result = RemoveParentQueryArea<Path>;
  *
  * // => '/parentpath/childpath/?ckey1&ckey2' }
  * ```
  */
-type RemoveParentQueryString<Path extends string> = Path extends
+type RemoveParentQueryArea<Path extends string> = Path extends
   `${infer Head}${Symbols.Query}${string}${Symbols.PathSeparater}${infer Tail}`
-  ? RemoveParentQueryString<`${Head}${Symbols.PathSeparater}${Tail}`>
+  ? RemoveParentQueryArea<`${Head}${Symbols.PathSeparater}${Tail}`>
   : Path;
 
 /**
@@ -300,8 +305,8 @@ type RemoveParentQueryString<Path extends string> = Path extends
 type PrunePaths<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${infer Protocol}:/${infer Rest}` // Is absolute path?
-      ? `${Protocol}:/${RemoveParentQueryString<Rest>}`
-      : RemoveParentQueryString<Config[RouteId]>;
+      ? `${Protocol}:/${RemoveParentQueryArea<Rest>}`
+      : RemoveParentQueryArea<Config[RouteId]>;
   }
   : never;
 
@@ -351,12 +356,12 @@ type ParamArgs<
   Config extends FlatRouteConfig,
   RouteId extends keyof Config,
 > = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
-  ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
+  ? [undefined?, ExtractRouteData<Config>[RouteId]["queries"]?]
   : IsUnknownType<ExtractRouteData<Config>[RouteId]["params"]> extends true
-    ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
+    ? [undefined?, ExtractRouteData<Config>[RouteId]["queries"]?]
   : [
     ExtractRouteData<Config>[RouteId]["params"],
-    ExtractRouteData<Config>[RouteId]["query"]?,
+    ExtractRouteData<Config>[RouteId]["queries"]?,
   ];
 
 export type {
