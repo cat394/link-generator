@@ -99,7 +99,7 @@ function remove_constraint_area(path: string): string {
 
 function replace_path_params(path: string, params: Param): string {
   const param_area_regex = new RegExp(
-    `${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
+    `(?<=${Symbols.PathSeparater})${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
     "g",
   );
 
