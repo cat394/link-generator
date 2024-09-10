@@ -219,7 +219,7 @@ Example:
 
    const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
-   
+
 ### Absolute Paths
 
 **Absolute paths are specially type-handled so do not include a `/` in front of
