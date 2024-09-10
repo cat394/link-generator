@@ -60,37 +60,37 @@ Deno.test("ExtractRouteData type", () => {
     root: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", DefaultParamValue>>;
+      query: Partial<Record<"key", DefaultParamValue>>;
     };
     with_name: {
       path: "/name";
       params: never;
-      queries: Partial<Record<"key", DefaultParamValue>>;
+      query: Partial<Record<"key", DefaultParamValue>>;
     };
     nested: {
       path: "/nested";
       params: never;
-      queries: never;
+      query: never;
     };
     "nested/deep": {
       path: "/nested/deep";
       params: never;
-      queries: Partial<Record<"key", DefaultParamValue>>;
+      query: Partial<Record<"key", DefaultParamValue>>;
     };
     nested_with_parent_param: {
       path: "/nested";
       params: never;
-      queries: Partial<Record<"parent-key", DefaultParamValue>>;
+      query: Partial<Record<"parent-key", DefaultParamValue>>;
     };
     "nested_with_parent_param/deep": {
       path: "/nested/deep";
       params: never;
-      queries: Partial<Record<"child-key", DefaultParamValue>>;
+      query: Partial<Record<"child-key", DefaultParamValue>>;
     };
     multiple_query: {
       path: "/";
       params: never;
-      queries: Partial<
+      query: Partial<
         Record<"key1", DefaultParamValue> & Record<"key2", DefaultParamValue>
       >;
     };
@@ -204,7 +204,7 @@ Deno.test("create_link_generator", async (t) => {
     },
   );
 
-  await t.step("queries should be optional when generating paths", () => {
+  await t.step("query should be optional when generating paths", () => {
     const path_to_root = link("root");
     const path_to_with_name = link("with_name");
     const path_to_nested = link("nested");

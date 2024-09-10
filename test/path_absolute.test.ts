@@ -52,27 +52,27 @@ Deno.test("ExtractRouteData type", () => {
     http: {
       path: "http://";
       params: never;
-      queries: never;
+      query: never;
     };
     "http/localhost": {
       path: "http://localhost:3000";
       params: never;
-      queries: never;
+      query: never;
     };
     "http/localhost/static": {
       path: "http://localhost:3000/name";
       params: never;
-      queries: never;
+      query: never;
     };
     "http/localhost/with_param": {
       path: "http://localhost:3000/:param";
       params: Record<"param", DefaultParamValue>;
-      queries: never;
+      query: never;
     };
     "http/localhost/with_query": {
       path: "http://localhost:3000/name";
       params: never;
-      queries: Partial<Record<"key", DefaultParamValue>>;
+      query: Partial<Record<"key", DefaultParamValue>>;
     };
   };
 

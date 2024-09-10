@@ -45,22 +45,22 @@ Deno.test("ExtractRouteData type", () => {
     root: {
       path: "/";
       params: never;
-      queries: never;
+      query: never;
     };
     with_name: {
       path: "/name";
       params: never;
-      queries: never;
+      query: never;
     };
     nested: {
       path: "/nested";
       params: never;
-      queries: never;
+      query: never;
     };
     "nested/deep": {
       path: "/nested/deep";
       params: never;
-      queries: never;
+      query: never;
     };
   };
   assertType<

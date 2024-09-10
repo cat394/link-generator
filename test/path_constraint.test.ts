@@ -75,62 +75,62 @@ Deno.test("ExtractRouteData type", () => {
     string_param: {
       path: "/:param";
       params: Record<"param", string>;
-      queries: never;
+      query: never;
     };
     number_param: {
       path: "/:param";
       params: Record<"param", number>;
-      queries: never;
+      query: never;
     };
     boolean_param: {
       path: "/:param";
       params: Record<"param", boolean>;
-      queries: never;
+      query: never;
     };
     string_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", string>>;
+      query: Partial<Record<"key", string>>;
     };
     number_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", number>>;
+      query: Partial<Record<"key", number>>;
     };
     boolean_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", boolean>>;
+      query: Partial<Record<"key", boolean>>;
     };
     strings_union_param: {
       path: "/:param";
       params: Record<"param", "a" | "b" | "c">;
-      queries: never;
+      query: never;
     };
     numbers_union_param: {
       path: "/:param";
       params: Record<"param", 1 | 2 | 3>;
-      queries: never;
+      query: never;
     };
     mix_union_param: {
       path: "/:param";
       params: Record<"param", "a" | 1 | true>;
-      queries: never;
+      query: never;
     };
     strings_union_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", "a" | "b" | "c">>;
+      query: Partial<Record<"key", "a" | "b" | "c">>;
     };
     numbers_union_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", 1 | 2 | 3>>;
+      query: Partial<Record<"key", 1 | 2 | 3>>;
     };
     mix_union_query: {
       path: "/";
       params: never;
-      queries: Partial<Record<"key", "a" | 1 | true>>;
+      query: Partial<Record<"key", "a" | 1 | true>>;
     };
   };
 

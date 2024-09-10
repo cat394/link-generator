@@ -185,7 +185,7 @@ type ExtractRouteData<FlattenedRoutes extends FlatRouteConfig> = {
     params: IsUnknownType<PathParams<FlattenedRoutes[RouteId]>> extends true
       ? never
       : PathParams<FlattenedRoutes[RouteId]>;
-    queries: IsUnknownType<QueryParams<FlattenedRoutes[RouteId]>> extends true
+    query: IsUnknownType<QueryParams<FlattenedRoutes[RouteId]>> extends true
       ? never
       : Partial<QueryParams<FlattenedRoutes[RouteId]>>;
   };
@@ -346,12 +346,12 @@ type ParamArgs<
   Config extends FlatRouteConfig,
   RouteId extends keyof Config,
 > = ExtractRouteData<Config>[RouteId]["params"] extends EmptyObject
-  ? [undefined?, ExtractRouteData<Config>[RouteId]["queries"]?]
+  ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
   : IsUnknownType<ExtractRouteData<Config>[RouteId]["params"]> extends true
-    ? [undefined?, ExtractRouteData<Config>[RouteId]["queries"]?]
+    ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
   : [
     ExtractRouteData<Config>[RouteId]["params"],
-    ExtractRouteData<Config>[RouteId]["queries"]?,
+    ExtractRouteData<Config>[RouteId]["query"]?,
   ];
 
 export type {
