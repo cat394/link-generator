@@ -228,7 +228,7 @@ the domain.**
 Example:
 
 ```ts
-const routeConfig = {
+const route_config = {
   external: {
     path: "https://",
     children: {
@@ -246,7 +246,7 @@ const routeConfig = {
 
 // ...create a link generator
 
-const youtube_link = link("external/youtube/watch", undefined, {
+const video_link = link("external/youtube/watch", undefined, {
   videoid: "123",
 });
 // => 'https://youtube.com/watch?123'
