@@ -58,12 +58,12 @@ bunx jsr add @kokomi/link-generator
 
    ```ts
    import {
-     createLinkGenerator,
-     flattenRouteConfig,
+     create_link_generator,
+     flatten_route_config,
      type RouteConfig,
    } from "@kokomi/link-generator";
 
-   const routeConfig = {
+   const route_config = {
      home: {
        path: "/",
      },
@@ -81,7 +81,7 @@ bunx jsr add @kokomi/link-generator
 2. Flatten the routing object:
 
    ```ts
-   const flatRouteConfig = flattenRouteConfig(routeConfig);
+   const flatten_route_config = flatten_route_config(route_config);
    // {
    //   home: "/",
    //   users: "/users",
@@ -92,15 +92,15 @@ bunx jsr add @kokomi/link-generator
 3. Create a link generator:
 
    ```ts
-   const link = createLinkGenerator(flatRouteConfig);
+   const link = create_link_generator(flatRouteConfig);
    ```
 
 4. Generate links:
 
    ```ts
-   const rootPage = link("home"); // => '/'
-   const usersPage = link("users"); // => '/users'
-   const userPage = link("users/user", { userid: "alice" }); // => '/users/alice'
+   const root_page = link("home"); // => '/'
+   const users_page = link("users"); // => '/users'
+   const user_page = link("users/user", { userid: "alice" }); // => '/users/alice'
    ```
 
 ## Advanced Topics
@@ -122,7 +122,7 @@ Example:
 2. Create a link generator:
 
    ```ts
-   const link = createLinkGenerator(flatRouteConfig);
+   const link = create_link_generator(flatRouteConfig);
    ```
 
 3. Generates a link:
@@ -131,7 +131,7 @@ Example:
    the query parameter that was required when defining the path.
 
    ```ts
-   const postpage = link("post", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
+   const post_page = link("post", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
 ### Constraint Fields
@@ -174,7 +174,7 @@ Example:
    path.
 
    ```ts
-   const routeConfig = {
+   const route_config = {
      user: {
        path: "/users/:userid<string>",
      },
@@ -193,13 +193,13 @@ Example:
 2. Flattens the routing object
 
    ```ts
-   const flatRouteConfig = flattenRouteConfig(routeConfig);
+   const flat_route_config = flatte_route_config(routeConfig);
    ```
 
 3. Create a link generator.
 
    ```ts
-   const link = createLinkGenerator(flatRouteConfig);
+   const link = create_link_generator(flatRouteConfig);
    ```
 
 4. Generate link.
@@ -211,13 +211,13 @@ Example:
    The strings in each segment of a union type are automatically converted.
 
    ```ts
-   const userpage = link("user", { userid: "alice" }); // userid only accept string type!
+   const user_page = link("user", { userid: "alice" }); // userid only accept string type!
 
-   const postpage = link("post", { postid: 1 }); // postid only accept number type!
+   const post_page = link("post", { postid: 1 }); // postid only accept number type!
 
-   const newspage = link("news", undefined, { is_archived: true }); // is_archived query only accept boolean type!
+   const news_page = link("news", undefined, { is_archived: true }); // is_archived query only accept boolean type!
 
-   const categorypage = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
+   const category_page = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
 ### Absolute Paths
@@ -246,7 +246,7 @@ const routeConfig = {
 
 // ...create a link generator
 
-const youtubeLink = link("external/youtube/watch", undefined, {
+const youtube_link = link("external/youtube/watch", undefined, {
   videoid: "123",
 });
 // => 'https://youtube.com/watch?123'
@@ -258,7 +258,7 @@ To extract the params and query of each route, use the `ExtractRouteData` type
 as shown below.
 
 ```ts
-const routeConfig = {
+const route_config = {
   user: {
     path: "/users/:userid",
   },
@@ -267,7 +267,7 @@ const routeConfig = {
   },
 } as const satisfies RouteConfig;
 
-const flatRouteConfig = flattenRouteConfig(routeConfig);
+const flat_route_config = flatten_route_config(routeConfig);
 
 type RouteData = ExtractRouteData<typeof flatRouteConfig>;
 // ^
