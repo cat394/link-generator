@@ -1,24 +1,11 @@
-![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
-
 # Link Generator
 
-This simple link generator allows you to centrally manage links.
+![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
+
+A simple type-safe generator for creating links.
 
 This is distributed through a package registry called
 [JSR](https://jsr.io/@kokomi/link-generator).
-
-## Features
-
-- **Simple**
-
-  Simply define a route configuration object and you are ready to go.
-
-- **Type Safety**
-
-  It uses TypeScript type inference to generate type-safe links, and also allows
-  you to strongly type parameters and queries. Also, it only does the bare
-  minimum of type inference to provide strong type safety, so type inference
-  will never slow down your project.
 
 ## Installation
 
@@ -125,38 +112,41 @@ bunx jsr add @kokomi/link-generator
    link("post", { id: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
-## Constraint Field
+## Constraint Area
 
 The type of values for path and query parameters is `string|number|boolean` by
 default. While this is sufficient in most cases, this type can be made more
-strict by defining a **constraint field**. This is a special string that can be
+strict by defining a **constraint area**. This is a special string that can be
 included in the path, like `<Constraint>`. Conditions can be defined within open
 (`<`) and close (`>`) mountain brackets. In this field, the following three type
 constraints can be placed on path and query parameters:
 
 - **String Type**
 
-You can narrow down the id to a string type by defining a condition field with a
-parameter name followed by the string `string`, as in `/:id<string>`.
+  You can narrow down the id to a string type by defining a condition field with
+  a parameter name followed by the string `string`, as in `/:id<string>`.
 
 - **Number Type**
 
-You can narrow down the id to a number type by defining a condition field with a
-parameter name followed by the string `number`, as in `/:id<number>`.
+  You can narrow down the id to a number type by defining a condition field with
+  a parameter name followed by the string `number`, as in `/:id<number>`.
 
 - **Boolean Type**
 
-You can narrow down the id to a boolean type by defining a condition field with
-a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
+  You can narrow down the id to a boolean type by defining a condition field
+  with a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 
 - **Union Type**
 
-If you want to be strict and require that params and query only accept certain
-values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
+  If you want to be strict and require that params and query only accept certain
+  values ​​other than string, number, and boolean, use the `<(Type1|Type2)>`
+  syntax.
 
-> If you specify a basic type such as `<(string|number)>`, it will become a
-> string union type such as `"string" | "number"`. Strings that can be converted
-> to `true`, `false`, or `number` types will be automatically converted.
+  The type of each segment of a union type defaults to its string literal type,
+  but you can manually cast strings that can be converted to a number, such as
+  1, or to a Boolean, such as true or false, or strings that represent types
+  such as string, number, or boolean. To do this, simply prepend `*` to the
+  string you want to cast, for example `*123`, `*true`, or `*string`.
 
 1. Create a generator:
 
@@ -168,11 +158,14 @@ values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` s
      post: {
        path: "/post/:id<number>",
      },
+     category: {
+       path: "/categories/:id<(a|*10|*false)>",
+     },
      news: {
        path: "/news?archived<boolean>",
      },
-     category: {
-       path: "/categories/:id<(a|10|false)>",
+     image: {
+       path: "/image?width<(auto|*number)>",
      },
    } as const satisfies RouteConfig;
 
@@ -183,20 +176,21 @@ values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` s
 
 2. Generate links:
 
-   You will notice that the userid value is of type `string`, the postid value
-   is of type `number`, and the categoryid value is of type `'a'|10|false`
-   union.
-
-   The strings in each segment of a union type are automatically converted.
-
    ```ts
-   link("user", { id: "alice" }); // id only accept string type!
+   link("user", { id: "alice" });
+   // Param type: { id: string }
 
-   link("post", { id: 1 }); // id only accept number type!
+   link("post", { id: 1 });
+   // Param type: { id: number }
 
-   link("news", undefined, { archived: true }); // archived only accept boolean type!
+   link("category", { id: "a" });
+   // Param type: { id: 'a' | 10 | false }
 
-   link("category", { id: "a" }); // id only accept 'a' or 10 or false!
+   link("news", undefined, { archived: true });
+   // Query type: { archived: boolean }
+
+   link("image", undefined, { width: "auto" });
+   // Query type: { width: 'auto' | number }
    ```
 
 ## Absolute Paths
@@ -292,7 +286,6 @@ const obj = {
       child1: {},
     },
   },
-
   parent2: {
     children: {
       child1: {},
@@ -313,12 +306,8 @@ namespace.
 
 ## Acknowledgements
 
-This project was inspired by and built upon the following project:
-
-- [nanostores/router](https://github.com/nanostores/router)
-
-We are grateful to the original authors for their hard work and contributions to
-the open-source community.
+This project was inspired by
+[nanostores/router](https://github.com/nanostores/router).
 
 ## License
 
