@@ -12,7 +12,11 @@ import { remove_query_area } from "./utils.ts";
  * 	This function create link generator.
  *
  * 	```ts
- * 	import { flatten_route_config, create_link_generator } from '@kokomi/link-generator';
+ * 	import {
+ *    flatten_route_config,
+ *    create_link_generator,
+ *    type RouteConfig
+ *  } from '@kokomi/link-generator';
  *
  * 	const route_config = {
  * 		home: {
@@ -22,7 +26,7 @@ import { remove_query_area } from "./utils.ts";
  * 			path: '/users',
  * 				children: {
  * 					user: {
- *            path: '/:userid'
+ *            path: '/:id'
  *          }
  * 				}
  * 		},
@@ -32,24 +36,24 @@ import { remove_query_area } from "./utils.ts";
  *
  * 	const link = create_link_generator(flat_config);
  *
- * 	const rootpage = link('home');	// => '/'
+ * 	link('home');	// => '/'
  *
- * 	const userpage = link('users'); // => '/users'
+ * 	link('users'); // => '/users'
  *
- * 	const postpage = link('users/user', { userid: 'alice' }); // => /users/alice
+ * 	link('users/user', { id: 'alice' }); // => /users/alice
  * 	```
  *
- * @param route_config - The route object processed by the flattenRouteConfig function.
+ * @param route_config - The route object processed by the flatten_route_config function.
  * @returns A function to generate links.
  */
 export function create_link_generator<Config extends FlatRouteConfig>(
   route_config: Config,
 ): LinkGenerator<Config> {
   return <RouteId extends keyof Config>(
-    routeId: RouteId,
+    route_id: RouteId,
     ...params: ParamArgs<Config, RouteId>
   ): string => {
-    const path_template = route_config[routeId];
+    const path_template = route_config[route_id];
 
     const path_params = params[0];
 
@@ -63,12 +67,12 @@ export function create_link_generator<Config extends FlatRouteConfig>(
       return path;
     }
 
-    if (is_include_constraint_area(path)) {
+    if (detect_constraint_area(path)) {
       path = remove_constraint_area(path);
     }
 
     if (path_params) {
-      path = replace_path_params(path, path_params);
+      path = replace_params_area(path, path_params);
     }
 
     if (query_params) {
@@ -83,7 +87,7 @@ export function create_link_generator<Config extends FlatRouteConfig>(
   };
 }
 
-function is_include_constraint_area(path: string): boolean {
+function detect_constraint_area(path: string): boolean {
   const constraint_open_index = path.indexOf(Symbols.ConstraintOpen);
 
   return constraint_open_index > 0;
@@ -94,10 +98,11 @@ function remove_constraint_area(path: string): string {
     `${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
     "g",
   );
+
   return path.replace(constraint_area, "");
 }
 
-function replace_path_params(path: string, params: Param): string {
+function replace_params_area(path: string, params: Param): string {
   const param_area_regex = new RegExp(
     `(?<=${Symbols.PathSeparater})${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
     "g",
@@ -105,6 +110,7 @@ function replace_path_params(path: string, params: Param): string {
 
   return path.replace(param_area_regex, (_, param_name) => {
     const param_value = params[param_name];
+
     return encodeURIComponent(param_value);
   });
 }
