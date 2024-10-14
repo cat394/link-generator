@@ -65,25 +65,45 @@ type DefaultParamValue = string | number | boolean;
  */
 type Param = Record<string, DefaultParamValue>;
 
-type StringToNumber<UnionSegment extends string> = UnionSegment extends
-  `${infer NumericString extends number}` ? NumericString
+type ConvertStringType<UnionSegment extends string> = UnionSegment extends
+  "string" ? string : never;
+
+type ConvertNumberType<UnionSegment extends string> = UnionSegment extends
+  "number" ? number
+  : UnionSegment extends `${infer NumericString extends number}` ? NumericString
   : UnionSegment;
 
-type StringToBoolean<UnionSegment extends string> = UnionSegment extends "true"
-  ? true
+type ConvertBooleanType<UnionSegment extends string> = UnionSegment extends
+  "boolean" ? boolean
+  : UnionSegment extends "true" ? true
   : UnionSegment extends "false" ? false
   : UnionSegment;
 
-type ParseUnion<UnionString extends string> = StringToBoolean<
-  StringToNumber<Split<UnionString, Symbols.UnionSeparater>[number]>
+type ConvertPrimitive<UnionSegment extends string> =
+  ConvertNumberType<UnionSegment> extends number
+    ? ConvertNumberType<UnionSegment>
+    : ConvertBooleanType<UnionSegment> extends boolean
+      ? ConvertBooleanType<UnionSegment>
+    : ConvertStringType<UnionSegment>;
+
+type SeparatedUnion<UnionString extends string> = Split<
+  UnionString,
+  Symbols.UnionSeparater
 >;
+
+type ParseUnion<UnionPart extends string[]> = {
+  [Index in keyof UnionPart]: UnionPart[Index] extends
+    `${Symbols.ConvertString}${infer StringToConvert}`
+    ? ConvertPrimitive<StringToConvert>
+    : UnionPart[Index];
+};
 
 type InferParamType<Constraint extends string> = Constraint extends "string"
   ? string
   : Constraint extends "number" ? number
   : Constraint extends "boolean" ? boolean
   : Constraint extends `${Symbols.UnionOpen}${infer Union}${Symbols.UnionClose}`
-    ? ParseUnion<Union>
+    ? ParseUnion<SeparatedUnion<Union>>[number]
   : never;
 
 type CreateParams<Segment extends string> = Segment extends
