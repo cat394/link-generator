@@ -71,70 +71,63 @@ bunx jsr add @kokomi/link-generator
        path: "/users",
        children: {
          user: {
-           path: "/:userid",
+           path: "/:id",
          },
        },
      },
    } as const satisfies RouteConfig;
    ```
 
-2. Flatten the routing object:
+2. Flatten the route config object:
 
    ```ts
-   const flatten_route_config = flatten_route_config(route_config);
+   const flat_route = flatten_route_config(route_config);
    // {
    //   home: "/",
    //   users: "/users",
-   //   "users/user": "/users/:userid"
+   //   "users/user": "/users/:id"
    // }
    ```
 
-3. Create a link generator:
+3. Create a generator:
 
    ```ts
-   const link = create_link_generator(flatRouteConfig);
+   const link = create_link_generator(flat_route);
    ```
 
 4. Generate links:
 
    ```ts
-   const root_page = link("home"); // => '/'
-   const users_page = link("users"); // => '/users'
-   const user_page = link("users/user", { userid: "alice" }); // => '/users/alice'
+   link("home"); // => '/'
+   link("users"); // => '/users'
+   link("users/user", { id: "alice" }); // => '/users/alice'
    ```
 
-## Advanced Topics
-
-### Query
+## Query
 
 Example:
 
-1. Defines a route configuration object:
+1. Create a generator:
 
    ```ts
-   const routeConfig = {
+   const route_config = {
      post: {
-       path: "/posts/:postid?page",
+       path: "/posts/:id?page",
      },
    } as const satisfies RouteConfig;
+
+   const flat_route = flatten_route_config(route_config);
+
+   const link = create_link_generator(flat_route);
    ```
 
-2. Create a link generator:
+2. Generate a link:
 
    ```ts
-   const link = create_link_generator(flatRouteConfig);
+   link("post", { id: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
-3. Generates a link:
-
-   The final output from the link generator will be stripped of the `/` before
-   the query parameter that was required when defining the path.
-
-   ```ts
-   const post_page = link("post", { postid: "1" }, { page: 10 }); // => '/posts/1?page=10'
-   ```
-
-### Constraint Fields
+## Constraint Fields
 
 The type of values for path and query parameters is `string|number|boolean` by
 default. While this is sufficient in most cases, this type can be made more
@@ -163,46 +156,36 @@ a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 If you want to be strict and require that params and query only accept certain
 values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
 
-> ![NOTE] if you specify a basic type such as `<(string|number)>`, it will
-> become a string union type such as `"string" | "number"`. Strings that can be
-> converted to `true`, `false`, or `number` types will be automatically
-> converted.
+> If you specify a basic type such as `<(string|number)>`, it will become a
+> string union type such as `"string" | "number"`. Strings that can be converted
+> to `true`, `false`, or `number` types will be automatically converted.
 
 Example:
 
-1. Define a route configuration object with condition fields defined in the
-   path.
+1. Create a generator
 
    ```ts
    const route_config = {
      user: {
-       path: "/users/:userid<string>",
+       path: "/users/:id<string>",
      },
      post: {
-       path: "/post/:postid<number>",
+       path: "/post/:id<number>",
      },
      news: {
-       path: "/news?is_archived<boolean>",
+       path: "/news?archived<boolean>",
      },
      category: {
-       path: "/categories/:categoryid<(a|10|false)>",
+       path: "/categories/:id<(a|10|false)>",
      },
    } as const satisfies RouteConfig;
+
+   const flat_route = flatten_route_config(route_config);
+
+   const link = create_link_generator(flat_route);
    ```
 
-2. Flattens the routing object
-
-   ```ts
-   const flat_route_config = flatte_route_config(routeConfig);
-   ```
-
-3. Create a link generator.
-
-   ```ts
-   const link = create_link_generator(flatRouteConfig);
-   ```
-
-4. Generate link.
+2. Generate link.
 
    You will notice that the userid value is of type `string`, the postid value
    is of type `number`, and the categoryid value is of type `'a'|10|false`
@@ -211,19 +194,19 @@ Example:
    The strings in each segment of a union type are automatically converted.
 
    ```ts
-   const user_page = link("user", { userid: "alice" }); // userid only accept string type!
+   link("user", { id: "alice" }); // id only accept string type!
 
-   const post_page = link("post", { postid: 1 }); // postid only accept number type!
+   link("post", { id: 1 }); // id only accept number type!
 
-   const news_page = link("news", undefined, { is_archived: true }); // is_archived query only accept boolean type!
+   link("news", undefined, { archived: true }); // archived query only accept boolean type!
 
-   const category_page = link("category", { categoryid: "a" }); // categoryid only accept 'a' or 10 or false!
+   link("category", { id: "a" }); // categoryid only accept 'a' or 10 or false!
    ```
 
-### Absolute Paths
+## Absolute Paths
 
-**Absolute paths are specially type-handled so do not include a `/` in front of
-the domain.**
+Absolute paths are specially type-handled so **do not include a `/` in front of
+the domain**.
 
 Example:
 
@@ -236,7 +219,7 @@ const route_config = {
         path: "youtube.com",
         children: {
           video: {
-            path: "/watch?videoid",
+            path: "/watch?v",
           },
         },
       },
@@ -244,15 +227,15 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-// ...create a link generator
+const flat_route = flatten_route_config(route_config);
 
-const video_link = link("external/youtube/watch", undefined, {
-  videoid: "123",
-});
-// => 'https://youtube.com/watch?123'
+const link = create_link_generator(flat_route);
+
+link("external/youtube/video", undefined, { v: "123" });
+// => 'https://youtube.com/watch?v=123'
 ```
 
-## Route data Type
+## Route Type
 
 To extract the params and query of each route, use the `ExtractRouteData` type
 as shown below.
@@ -260,32 +243,31 @@ as shown below.
 ```ts
 const route_config = {
   user: {
-    path: "/users/:userid",
+    path: "/users/:id",
   },
   news: {
-    path: "/news?is_archived<boolean>",
+    path: "/news?archived<boolean>",
   },
 } as const satisfies RouteConfig;
 
-const flat_route_config = flatten_route_config(routeConfig);
+const flat_route = flatten_route_config(routeConfig);
 
-type RouteData = ExtractRouteData<typeof flatRouteConfig>;
-// ^
+type RouteType = ExtractRouteData<typeof flat_route>;
 // {
 //     user: {
-//         path: "/users/:userid";
-//         params: Record<"userid", DefaultParamValue>;
+//         path: "/users/:id";
+//         params: Record<"id", DefaultParamValue>;
 //         query: never;
 //     };
 //     news: {
 //         path: "/news";
 //         params: never;
-//         query: Record<"is_archived", boolean>;
+//         query: Record<"archived", boolean>;
 //     };
 // }
 ```
 
-## Concept:
+## Concept
 
 Links are fragile, so calling them by unique route ids is essential instead of
 hard-coding them. To ensure the uniqueness of route ids while creating them
