@@ -15,9 +15,10 @@ This is distributed through a package registry called
 
 - **Type Safety**
 
-  It uses TypeScript type inference to generate type-safe links, and also allows you to strongly type parameters and queries.
-  Also, it only does the bare minimum of type inference to provide
-  strong type safety, so type inference will never slow down your project.
+  It uses TypeScript type inference to generate type-safe links, and also allows
+  you to strongly type parameters and queries. Also, it only does the bare
+  minimum of type inference to provide strong type safety, so type inference
+  will never slow down your project.
 
 ## Installation
 
@@ -124,7 +125,7 @@ bunx jsr add @kokomi/link-generator
    link("post", { id: "1" }, { page: 10 }); // => '/posts/1?page=10'
    ```
 
-## Constraint Fields
+## Constraint Field
 
 The type of values for path and query parameters is `string|number|boolean` by
 default. While this is sufficient in most cases, this type can be made more
@@ -133,22 +134,22 @@ included in the path, like `<Constraint>`. Conditions can be defined within open
 (`<`) and close (`>`) mountain brackets. In this field, the following three type
 constraints can be placed on path and query parameters:
 
-- **String type**
+- **String Type**
 
 You can narrow down the id to a string type by defining a condition field with a
 parameter name followed by the string `string`, as in `/:id<string>`.
 
-- **Number type**
+- **Number Type**
 
 You can narrow down the id to a number type by defining a condition field with a
 parameter name followed by the string `number`, as in `/:id<number>`.
 
-- **Boolean type**
+- **Boolean Type**
 
 You can narrow down the id to a boolean type by defining a condition field with
 a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
 
-- **Union type**
+- **Union Type**
 
 If you want to be strict and require that params and query only accept certain
 values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` syntax.
@@ -156,8 +157,6 @@ values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` s
 > If you specify a basic type such as `<(string|number)>`, it will become a
 > string union type such as `"string" | "number"`. Strings that can be converted
 > to `true`, `false`, or `number` types will be automatically converted.
-
-Example:
 
 1. Create a generator:
 
@@ -202,8 +201,9 @@ Example:
 
 ## Absolute Paths
 
-Absolute paths are specially type-handled so **do not include a `/` in front of
-the domain**.
+If the link you want to generate contains a protocol, special type inference
+needs to be done, so write the protocol and domain like this, with the protocol
+ending in `://` and no `/` before the domain:
 
 ```ts
 const route_config = {
@@ -232,15 +232,16 @@ link("external/youtube/video", undefined, { v: "123" });
 
 ## Route Type
 
-The inferred type for each route can be obtained using the `ExtractRouteData` type.
+The inferred type for each route can be obtained using the `ExtractRouteData`
+type.
 
 ```ts
 const route_config = {
   user: {
-    path: "/users/:id"
+    path: "/users/:id",
   },
   news: {
-    path: "/news?archived<boolean>"
+    path: "/news?archived<boolean>",
   },
 } as const satisfies RouteConfig;
 
