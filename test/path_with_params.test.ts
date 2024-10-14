@@ -88,8 +88,6 @@ Deno.test("ExtractRouteData type", () => {
     };
   };
 
-  type A = Pick<ExtractRouteData<typeof flat_route_config>, "nested/deep">;
-
   assertType<
     IsExact<
       ExtractRouteData<typeof flat_route_config>,
