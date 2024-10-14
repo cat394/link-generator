@@ -9,9 +9,9 @@ import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
  * into a single-level object where the keys are the concatenated paths.
  *
  * ```ts
- * import { flatten_route_config } from '@kokomi/link-generator';
+ * import { flatten_route_config, type RouteConfig } from '@kokomi/link-generator';
  *
- * const routeConfig = {
+ * const route_config = {
  *   home: {
  *     path: '/'
  *   },
@@ -19,14 +19,18 @@ import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
  *     path: '/users',
  *     children: {
  *       user: {
- *         path: '/userid'
+ *         path: '/id'
  *       }
  *     }
  *   }
  * } as const satisfies RouteConfig;
  *
- * const flat_route_config = flatten_route_config(routeConfig);
- * // => { home: '/', 'users': '/users', 'users/user': '/users/:user' }
+ * const flat_route_config = flatten_route_config(route_config);
+ * // {
+ * //   home: '/',
+ * //   users: '/users',
+ * //   'users/user': '/users/:id'
+ * // }
  * ```
  *
  * @param route_config - The route configuration to flatten.
@@ -39,14 +43,14 @@ export function flatten_route_config<Config extends RouteConfig>(
   parent_path = "",
   result: FlatRouteConfig = {},
 ): FlatRoutes<Config> {
-  for (const parent_routeid in route_config) {
-    const route = route_config[parent_routeid];
+  for (const parent_route_id in route_config) {
+    const route = route_config[parent_route_id];
 
     const current_path = route.path;
 
     const full_path = `${parent_path}${current_path}`;
 
-    result[parent_routeid] = full_path;
+    result[parent_route_id] = full_path;
 
     if (route.children) {
       const parent_path_removed_query_area = remove_query_area(full_path);
@@ -56,13 +60,14 @@ export function flatten_route_config<Config extends RouteConfig>(
         parent_path_removed_query_area,
       );
 
-      for (const child_routeid in children) {
-        const child_routeid_with_parent_routeid =
-          `${parent_routeid}${Symbols.PathSeparater}${child_routeid}`;
+      for (const child_route_id in children) {
+        const child_route_id_with_parent =
+          `${parent_route_id}${Symbols.PathSeparater}${child_route_id}`;
 
-        result[child_routeid_with_parent_routeid] = children[child_routeid];
+        result[child_route_id_with_parent] = children[child_route_id];
       }
     }
   }
+
   return result as FlatRoutes<Config>;
 }
