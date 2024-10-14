@@ -2,12 +2,12 @@ name: Deno Tests
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - develop
 
   pull_request:
-    branches: 
+    branches:
       - main
       - develop
 
