@@ -15,10 +15,9 @@ This is distributed through a package registry called
 
 - **Type Safety**
 
-  Extract parameters and search parameters from strings in paths using
-  TypeScript's type inference for type-safe link generation. Paths can include
-  condition fields to specify parameter types as strings, numeric types, or
-  string literal types that are numeric literals
+  It uses TypeScript type inference to generate type-safe links, and also allows you to strongly type parameters and queries.
+  Also, it only does the bare minimum of type inference to provide
+  strong type safety, so type inference will never slow down your project.
 
 ## Installation
 
@@ -78,7 +77,7 @@ bunx jsr add @kokomi/link-generator
    } as const satisfies RouteConfig;
    ```
 
-2. Flatten the route config object:
+2. Flatten the object:
 
    ```ts
    const flat_route = flatten_route_config(route_config);
@@ -104,8 +103,6 @@ bunx jsr add @kokomi/link-generator
    ```
 
 ## Query
-
-Example:
 
 1. Create a generator:
 
@@ -162,7 +159,7 @@ values ​​other than string, number, and boolean, use the `<(Type1|Type2)>` s
 
 Example:
 
-1. Create a generator
+1. Create a generator:
 
    ```ts
    const route_config = {
@@ -185,7 +182,7 @@ Example:
    const link = create_link_generator(flat_route);
    ```
 
-2. Generate link.
+2. Generate links:
 
    You will notice that the userid value is of type `string`, the postid value
    is of type `number`, and the categoryid value is of type `'a'|10|false`
@@ -198,17 +195,15 @@ Example:
 
    link("post", { id: 1 }); // id only accept number type!
 
-   link("news", undefined, { archived: true }); // archived query only accept boolean type!
+   link("news", undefined, { archived: true }); // archived only accept boolean type!
 
-   link("category", { id: "a" }); // categoryid only accept 'a' or 10 or false!
+   link("category", { id: "a" }); // id only accept 'a' or 10 or false!
    ```
 
 ## Absolute Paths
 
 Absolute paths are specially type-handled so **do not include a `/` in front of
 the domain**.
-
-Example:
 
 ```ts
 const route_config = {
@@ -237,20 +232,19 @@ link("external/youtube/video", undefined, { v: "123" });
 
 ## Route Type
 
-To extract the params and query of each route, use the `ExtractRouteData` type
-as shown below.
+The inferred type for each route can be obtained using the `ExtractRouteData` type.
 
 ```ts
 const route_config = {
   user: {
-    path: "/users/:id",
+    path: "/users/:id"
   },
   news: {
-    path: "/news?archived<boolean>",
+    path: "/news?archived<boolean>"
   },
 } as const satisfies RouteConfig;
 
-const flat_route = flatten_route_config(routeConfig);
+const flat_route = flatten_route_config(route_config);
 
 type RouteType = ExtractRouteData<typeof flat_route>;
 // {
@@ -278,10 +272,10 @@ unique by prefixing them with the parent route id.
 
 ```ts
 const obj = {
-  routeid: {},
+  route1: {},
 
   // Type error! An object literal cannot have multiple properties with the same name.
-  routeid: {},
+  route1: {},
 };
 ```
 
@@ -320,8 +314,7 @@ namespace.
 
 This project was inspired by and built upon the following project:
 
-- [nanostores/router](https://github.com/nanostores/router) by
-  [ai](https://github.com/ai)
+- [nanostores/router](https://github.com/nanostores/router)
 
 We are grateful to the original authors for their hard work and contributions to
 the open-source community.
