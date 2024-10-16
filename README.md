@@ -68,7 +68,7 @@ bunx jsr add @kokomi/link-generator
 2. Flatten the object:
 
    ```ts
-   const flat_route = flatten_route_config(route_config);
+   const flat_routes = flatten_route_config(route_config);
    // {
    //   home: "/",
    //   users: "/users",
@@ -79,7 +79,7 @@ bunx jsr add @kokomi/link-generator
 3. Create a generator:
 
    ```ts
-   const link = create_link_generator(flat_route);
+   const link = create_link_generator(flat_routes);
    ```
 
 4. Generate links:
@@ -101,9 +101,9 @@ bunx jsr add @kokomi/link-generator
      },
    } as const satisfies RouteConfig;
 
-   const flat_route = flatten_route_config(route_config);
+   const flat_routes = flatten_route_config(route_config);
 
-   const link = create_link_generator(flat_route);
+   const link = create_link_generator(flat_routes);
    ```
 
 2. Generate a link:
@@ -169,9 +169,9 @@ constraints can be placed on path and query parameters:
      },
    } as const satisfies RouteConfig;
 
-   const flat_route = flatten_route_config(route_config);
+   const flat_routes = flatten_route_config(route_config);
 
-   const link = create_link_generator(flat_route);
+   const link = create_link_generator(flat_routes);
    ```
 
 2. Generate links:
@@ -216,9 +216,9 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-const flat_route = flatten_route_config(route_config);
+const flat_routes = flatten_route_config(route_config);
 
-const link = create_link_generator(flat_route);
+const link = create_link_generator(flat_routes);
 
 link("external/youtube/video", undefined, { v: "123" });
 // => 'https://youtube.com/watch?v=123'
@@ -239,9 +239,9 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-const flat_route = flatten_route_config(route_config);
+const flat_routes = flatten_route_config(route_config);
 
-type RouteType = ExtractRouteData<typeof flat_route>;
+type RouteType = ExtractRouteData<typeof flat_routes>;
 // {
 //     user: {
 //         path: "/users/:id";
