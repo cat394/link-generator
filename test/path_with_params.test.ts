@@ -81,10 +81,9 @@ Deno.test("ExtractRouteData type", () => {
 
     "nested_with_parent_param/deep": {
       path: "/nested/:parent-param/deep/:child-param";
-      params: {
-        "child-param": DefaultParamValue;
-        "parent-param": DefaultParamValue;
-      };
+      params:
+        & Record<"child-param", DefaultParamValue>
+        & Record<"parent-param", DefaultParamValue>;
       query: never;
     };
   };
