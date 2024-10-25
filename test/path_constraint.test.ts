@@ -31,19 +31,26 @@ const route_config = {
     path: "/:param<(a|b|c)>",
   },
   numbers_union_param: {
-    path: "/:param<(1|2|3)>",
+    path: "/:param<(*1|*2|*3)>",
   },
   mix_union_param: {
-    path: "/:param<(a|1|true)>",
+    path: "/:param<(a|*1|*true)>",
+  },
+  primitive_union_param: {
+    path: "/:param<(*string|*number|*boolean)>",
   },
   strings_union_query: {
     path: "/?key<(a|b|c)>",
   },
   numbers_union_query: {
-    path: "/?key<(1|2|3)>",
+    path: "/?key<(*1|*2|*3)>",
   },
+
   mix_union_query: {
-    path: "/?key<(a|1|true)>",
+    path: "/?key<(a|*1|*true)>",
+  },
+  primitive_union_query: {
+    path: "/?key<(*string|*number|*boolean)>",
   },
 } as const satisfies RouteConfig;
 
@@ -58,11 +65,13 @@ Deno.test("FlatRoutes type", () => {
     number_query: "/?key<number>";
     boolean_query: "/?key<boolean>";
     strings_union_param: "/:param<(a|b|c)>";
-    numbers_union_param: "/:param<(1|2|3)>";
-    mix_union_param: "/:param<(a|1|true)>";
+    numbers_union_param: "/:param<(*1|*2|*3)>";
+    mix_union_param: "/:param<(a|*1|*true)>";
+    primitive_union_param: "/:param<(*string|*number|*boolean)>";
     strings_union_query: "/?key<(a|b|c)>";
-    numbers_union_query: "/?key<(1|2|3)>";
-    mix_union_query: "/?key<(a|1|true)>";
+    numbers_union_query: "/?key<(*1|*2|*3)>";
+    mix_union_query: "/?key<(a|*1|*true)>";
+    primitive_union_query: "/?key<(*string|*number|*boolean)>";
   };
 
   assertType<IsExact<FlatRoutes<typeof route_config>, ExpectedFlatRoutes>>(
@@ -117,6 +126,11 @@ Deno.test("ExtractRouteData type", () => {
       params: Record<"param", "a" | 1 | true>;
       query: never;
     };
+    primitive_union_param: {
+      path: "/:param";
+      params: Record<"param", string | number | boolean>;
+      query: never;
+    };
     strings_union_query: {
       path: "/";
       params: never;
@@ -131,6 +145,11 @@ Deno.test("ExtractRouteData type", () => {
       path: "/";
       params: never;
       query: Partial<Record<"key", "a" | 1 | true>>;
+    };
+    primitive_union_query: {
+      path: "/";
+      params: never;
+      query: Partial<Record<"key", string | number | boolean>>;
     };
   };
 
@@ -151,11 +170,13 @@ Deno.test("flatten_route_config", () => {
     number_query: "/?key<number>",
     boolean_query: "/?key<boolean>",
     strings_union_param: "/:param<(a|b|c)>",
-    numbers_union_param: "/:param<(1|2|3)>",
-    mix_union_param: "/:param<(a|1|true)>",
+    numbers_union_param: "/:param<(*1|*2|*3)>",
+    mix_union_param: "/:param<(a|*1|*true)>",
+    primitive_union_param: "/:param<(*string|*number|*boolean)>",
     strings_union_query: "/?key<(a|b|c)>",
-    numbers_union_query: "/?key<(1|2|3)>",
-    mix_union_query: "/?key<(a|1|true)>",
+    numbers_union_query: "/?key<(*1|*2|*3)>",
+    mix_union_query: "/?key<(a|*1|*true)>",
+    primitive_union_query: "/?key<(*string|*number|*boolean)>",
   } as const satisfies FlatRoutes<typeof route_config>;
 
   assertEquals(flat_route_config, expected_flat_route_config);

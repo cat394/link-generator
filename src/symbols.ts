@@ -1,8 +1,8 @@
 export enum Symbols {
   PathSeparater = "/",
   PathParam = ":",
-  OptionalParam = "?",
   Query = "?",
+  ConvertString = "*",
   QuerySeparator = "&",
   ConstraintOpen = "<",
   ConstraintClose = ">",
