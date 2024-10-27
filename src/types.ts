@@ -230,7 +230,8 @@ type RemoveParentQueryArea<Path extends string> = Path extends
  * //   'parent/child': '/parent/child?ckey1&ckey2'
  * // }
  */
-type FlatRouteConfigRemovedParentQueryArea<Config> = Config extends FlatRouteConfig ? {
+type FlatRouteConfigRemovedParentQueryArea<Config> = Config extends
+  FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${infer Protocol}:/${infer Rest}`
       ? `${Protocol}:/${RemoveParentQueryArea<Rest>}`
@@ -272,7 +273,9 @@ type FlatRouteConfigRemovedParentQueryArea<Config> = Config extends FlatRouteCon
  * // }
  * ```
  */
-type FlatRoutes<Config> = FlatRouteConfigRemovedParentQueryArea<FlattenRouteConfig<Config>>;
+type FlatRoutes<Config> = FlatRouteConfigRemovedParentQueryArea<
+  FlattenRouteConfig<Config>
+>;
 
 type RemoveQueryArea<Path extends string> = Path extends
   `${infer RoutePath}${Symbols.Query}${string}` ? RoutePath : Path;
