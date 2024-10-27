@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
+import { link_generator } from "../src/link_generator.ts";
 import {
-  create_link_generator,
   type ExtractRouteData,
   type FlatRoutes,
   flatten_route_config,
@@ -185,7 +185,7 @@ Deno.test("flatten_route_config", () => {
 Deno.test(
   "The constraint area should be removed when creating the path",
   () => {
-    const link = create_link_generator(flat_route_config);
+    const link = link_generator(route_config);
     const path = link("string_param", { param: "a" });
     assertEquals(path, "/a");
   },

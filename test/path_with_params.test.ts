@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
+import { link_generator } from "../src/link_generator.ts";
 import {
-  create_link_generator,
   type DefaultParamValue,
   type ExtractRouteData,
   type FlatRoutes,
@@ -81,16 +81,17 @@ Deno.test("ExtractRouteData type", () => {
 
     "nested_with_parent_param/deep": {
       path: "/nested/:parent-param/deep/:child-param";
-      params:
-        & Record<"child-param", DefaultParamValue>
-        & Record<"parent-param", DefaultParamValue>;
+      params: {
+        "child-param": DefaultParamValue;
+        "parent-param": DefaultParamValue;
+      };
       query: never;
     };
   };
 
   assertType<
     IsExact<
-      ExtractRouteData<typeof flat_route_config>,
+      ExtractRouteData<FlatRoutes<typeof route_config>>,
       ExpectedExtractRouteData
     >
   >(true);
@@ -110,7 +111,7 @@ Deno.test("flatten_route_config", () => {
 });
 
 Deno.test("create_link_generator", async (t) => {
-  const link = create_link_generator(flat_route_config);
+  const link = link_generator(route_config);
 
   await t.step("string param value", () => {
     const path_to_root = link("root", { param: "a" });

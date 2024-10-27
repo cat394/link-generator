@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
+import { link_generator } from "../src/link_generator.ts";
 import {
-  create_link_generator,
   type DefaultParamValue,
   type ExtractRouteData,
   type FlatRoutes,
@@ -117,7 +117,7 @@ Deno.test("flatten_route_config", () => {
 });
 
 Deno.test("create_link_generator", async (t) => {
-  const link = create_link_generator(flat_route_config);
+  const link = link_generator(route_config);
 
   await t.step("string param value", () => {
     const path_to_root = link("root", undefined, { key: "a" });
@@ -176,32 +176,6 @@ Deno.test("create_link_generator", async (t) => {
     assertEquals(path_to_root_with_falsy_param_value, "/?key=0");
   });
 
-  await t.step(
-    "query is undefined, no query string should be generated",
-    () => {
-      const path_to_root = link("root", undefined, undefined);
-      const path_to_with_name = link("with_name", undefined, undefined);
-      const path_to_nested = link("nested");
-      const path_to_nested_deep = link("nested/deep", undefined, undefined);
-      const path_to_nested_with_parent_param = link(
-        "nested_with_parent_param",
-        undefined,
-        undefined,
-      );
-      const path_to_nested_deep_with_parent_param = link(
-        "nested_with_parent_param/deep",
-        undefined,
-        undefined,
-      );
-      assertEquals(path_to_root, "/");
-      assertEquals(path_to_with_name, "/name");
-      assertEquals(path_to_nested, "/nested");
-      assertEquals(path_to_nested_deep, "/nested/deep");
-      assertEquals(path_to_nested_with_parent_param, "/nested");
-      assertEquals(path_to_nested_deep_with_parent_param, "/nested/deep");
-    },
-  );
-
   await t.step("query should be optional when generating paths", () => {
     const path_to_root = link("root");
     const path_to_with_name = link("with_name");
@@ -222,8 +196,7 @@ Deno.test("create_link_generator", async (t) => {
   await t.step("multiple query", () => {
     const path_to_multiple_query = link("multiple_query", undefined, {
       key1: "a",
-      key2: "b",
-    });
+    }, { key2: "b" });
     assertEquals(path_to_multiple_query, "/?key1=a&key2=b");
   });
 });
