@@ -211,7 +211,7 @@ Deno.test("create_link_generator", async (t) => {
     }, { key2: "b" });
     assertEquals(first_undefined_query, "/?key2=b");
 
-		const last_empty_string_query = link("multiple_query", undefined, {
+    const last_empty_string_query = link("multiple_query", undefined, {
       key1: "a",
     }, { key2: "" });
     assertEquals(last_empty_string_query, "/?key1=a");

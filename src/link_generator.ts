@@ -146,18 +146,18 @@ function process_queries(query_params: Param[]): string {
   let qs = "";
 
   for (const query_param of query_params) {
-		const partial_qs = create_query_string_from_object(query_param);
+    const partial_qs = create_query_string_from_object(query_param);
 
-		qs += partial_qs;
+    qs += partial_qs;
 
     if (partial_qs !== "") {
       qs += "&";
     }
   }
 
-	if (qs.endsWith(Symbols.QuerySeparator)) {
-		qs = qs.slice(0, -Symbols.QuerySeparator.length);
-	}
+  if (qs.endsWith(Symbols.QuerySeparator)) {
+    qs = qs.slice(0, -Symbols.QuerySeparator.length);
+  }
 
   return qs;
 }
