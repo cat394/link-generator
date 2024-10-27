@@ -50,16 +50,16 @@ import { remove_query_area } from "./utils.ts";
  * @param route_config - The route object processed by the flatten_route_config function.
  * @returns A function to generate links.
  */
-export function link_generator<T extends RouteConfig>(
-  route_config: T,
-): LinkGenerator<FlatRoutes<T>> {
-  type Config = FlatRoutes<T>;
+export function link_generator<Config extends RouteConfig>(
+  route_config: Config,
+): LinkGenerator<FlatRoutes<Config>> {
+  type FlatConfig = FlatRoutes<Config>;
 
   const routes = create_routes_map(flatten_route_config(route_config));
 
-  return <RouteId extends keyof Config>(
+  return <RouteId extends keyof FlatConfig>(
     route_id: RouteId,
-    ...params: ParamArgs<Config, RouteId>
+    ...params: ParamArgs<FlatConfig, RouteId>
   ): string => {
     const path_template = routes.get(route_id);
 
@@ -122,53 +122,46 @@ export function link_generator<T extends RouteConfig>(
  * //   'users/user': '/users/:id'
  * // }
  */
-export function flatten_route_config<Config extends RouteConfig>(
-  route_config: Config,
+export function flatten_route_config(
+  route_config: RouteConfig,
   parent_path = "",
   result: FlatRouteConfig = {},
-): FlatRoutes<Config> {
-  for (const parent_route_id in route_config) {
-    const route = route_config[parent_route_id];
+): FlatRouteConfig {
+  for (const parent_route_name in route_config) {
+    const route = route_config[parent_route_name];
 
-    const current_path = route.path;
+    const current_path = remove_query_area(route.path);
 
     const path_with_parent = `${parent_path}${current_path}`;
 
-    result[parent_route_id] = path_with_parent;
+    result[parent_route_name] = path_with_parent;
 
     if (route.children) {
-      const parent_path_removed_query_area = remove_query_area(
-        path_with_parent,
-      );
+      const children = flatten_route_config(route.children, path_with_parent);
 
-      const children = flatten_route_config(
-        route.children,
-        parent_path_removed_query_area,
-      );
+      for (const child_route_name in children) {
+        const child_route_id =
+          `${parent_route_name}${Symbols.PathSeparater}${child_route_name}`;
 
-      for (const child_route_id in children) {
-        const child_route_id_with_parent =
-          `${parent_route_id}${Symbols.PathSeparater}${child_route_id}`;
-
-        result[child_route_id_with_parent] = children[child_route_id];
+        result[child_route_id] = children[child_route_name];
       }
     }
   }
 
-  return result as FlatRoutes<Config>;
+  return result;
 }
 
 function create_routes_map(flat_route: FlatRouteConfig) {
   const routes_map = new Map();
 
   for (const [route_id, path_template] of Object.entries(flat_route)) {
-    let formatted_path = remove_query_area(path_template);
+    let path_to_format = path_template;
 
     if (has_constraint_area(path_template)) {
-      formatted_path = remove_constraint_area(path_template);
+      path_to_format = remove_constraint_area(path_template);
     }
 
-    routes_map.set(route_id, formatted_path);
+    routes_map.set(route_id, path_to_format);
   }
 
   return routes_map;

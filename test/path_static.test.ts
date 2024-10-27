@@ -64,7 +64,7 @@ Deno.test("ExtractRouteData type", () => {
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
   const flat_route_config = flatten_route_config(route_config);
 
   const expected_flat_route_config = {

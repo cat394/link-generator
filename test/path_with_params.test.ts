@@ -94,7 +94,7 @@ Deno.test("ExtractRouteData type", () => {
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
   const flat_route_config = flatten_route_config(route_config);
 
   const expected_flat_route_config = {
@@ -104,7 +104,7 @@ Deno.test("flatten_route_config", () => {
     "nested/deep": "/nested/deep/:param",
     nested_with_parent_param: "/nested/:parent-param",
     "nested_with_parent_param/deep": "/nested/:parent-param/deep/:child-param",
-  } as const satisfies FlatRoutes<typeof route_config>;
+  };
 
   assertEquals(flat_route_config, expected_flat_route_config);
 });

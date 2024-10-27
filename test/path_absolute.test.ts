@@ -81,7 +81,7 @@ Deno.test("ExtractRouteData type", () => {
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
   const flat_route_config = flatten_route_config(route_config);
 
   const expected_flat_route_config = {
@@ -89,8 +89,8 @@ Deno.test("flatten_route_config", () => {
     "http/localhost": "http://localhost:3000",
     "http/localhost/static": "http://localhost:3000/name",
     "http/localhost/with_param": "http://localhost:3000/:param",
-    "http/localhost/with_query": "http://localhost:3000/name?key",
-  } as const satisfies FlatRoutes<typeof route_config>;
+    "http/localhost/with_query": "http://localhost:3000/name",
+  };
 
   assertEquals(flat_route_config, expected_flat_route_config);
 });

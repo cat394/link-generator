@@ -95,22 +95,22 @@ Deno.test("ExtractRouteData type", () => {
 
   assertType<
     IsExact<
-      ExtractRouteData<typeof flat_route_config>,
+      ExtractRouteData<FlatRoutes<typeof route_config>>,
       ExpectedExtractRouteData
     >
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
   const expected_flat_route_config = {
-    root: "/?key",
-    with_name: "/name?key",
+    root: "/",
+    with_name: "/name",
     nested: "/nested",
-    "nested/deep": "/nested/deep?key",
-    nested_with_parent_param: "/nested?parent-key",
-    "nested_with_parent_param/deep": "/nested/deep?child-key",
-    multiple_query: "/?key1&key2",
-  } as const satisfies FlatRoutes<typeof route_config>;
+    "nested/deep": "/nested/deep",
+    nested_with_parent_param: "/nested",
+    "nested_with_parent_param/deep": "/nested/deep",
+    multiple_query: "/",
+  };
 
   assertEquals(flat_route_config, expected_flat_route_config);
 });
