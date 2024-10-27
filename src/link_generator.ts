@@ -13,7 +13,11 @@ import { remove_query_area } from "./utils.ts";
 /**
  * 	This function create link generator.
  *
- * 	```ts
+ * @param route_config - The route object processed by the flatten_route_config function.
+ *
+ * @returns A function to generate links.
+ *
+ *  @example
  * 	import {
  *    link_generator,
  *    type RouteConfig
@@ -45,21 +49,15 @@ import { remove_query_area } from "./utils.ts";
  * 	link('users/user', { id: 'alice' }); // => /users/alice
  *
  * 	link('posts', undefined, { page: 2 }); // => /posts?page=2
- * 	```
- *
- * @param route_config - The route object processed by the flatten_route_config function.
- * @returns A function to generate links.
  */
 export function link_generator<Config extends RouteConfig>(
   route_config: Config,
 ): LinkGenerator<FlatRoutes<Config>> {
-  type FlatConfig = FlatRoutes<Config>;
-
   const routes = create_routes_map(flatten_route_config(route_config));
 
-  return <RouteId extends keyof FlatConfig>(
+  return <RouteId extends keyof FlatRoutes<Config>>(
     route_id: RouteId,
-    ...params: ParamArgs<FlatConfig, RouteId>
+    ...params: ParamArgs<FlatRoutes<Config>, RouteId>
   ): string => {
     const path_template = routes.get(route_id);
 
@@ -96,8 +94,11 @@ export function link_generator<Config extends RouteConfig>(
  * into a single-level object where the keys are the concatenated paths.
  *
  * @param route_config - The route configuration to flatten.
+ *
  * @param parent_path - The parent path, used internally during recursion.
+ *
  * @param result - The result object, used internally during recursion.
+ *
  * @returns The flattened route configuration.
  *
  * @example
