@@ -152,7 +152,7 @@ function process_queries(query_params: Param[]): string {
 
     queries_left--;
 
-    if (queries_left !== 0) {
+    if (qs !== "" && queries_left !== 0) {
       qs += "&";
     }
   }
