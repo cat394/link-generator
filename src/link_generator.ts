@@ -78,7 +78,7 @@ export function link_generator<T extends RouteConfig>(
     }
 
     if (is_exist_qurey) {
-      const qs = process_queries(query_params as Param[]);
+      const qs = generate_query_string(query_params as Param[]);
 
       if (qs !== "") {
         path += `?${qs}`;
@@ -212,7 +212,7 @@ function create_query_string_from_object(query: Partial<Param>): string {
     .join(Symbols.QuerySeparator);
 }
 
-function process_queries(query_params: Param[]): string {
+function generate_query_string(query_params: Param[]): string {
   let qs = "";
 
   for (const query_param of query_params) {
