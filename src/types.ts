@@ -163,15 +163,13 @@ type CreateRouteId<Config> = Config extends RouteConfig ? {
 /**
  * Flattens the route configuration object into a simpler structure.
  *
- * Example:
- *
- * ```ts
+ * @example
  * const route_config = {
  *  parent: {
- *    path: '/parentpath?a&b&c',
+ *    path: '/parent?a&b&c',
  *    children: {
  *      child: {
- *        path: '/childpath'
+ *        path: '/child'
  *      }
  *    }
  *  }
@@ -179,10 +177,9 @@ type CreateRouteId<Config> = Config extends RouteConfig ? {
  *
  * type Result = FlattenRouteConfig<typeof route_config>;
  * // {
- * //   parent: '/parentpath?a&b&c',
- * //   'parent/child': '/parentpath?a&b&c/childpath'
+ * //   parent: '/parent?a&b&c',
+ * //   'parent/child': '/parent?a&b&c/child'
  * // }
- * ```
  */
 type FlattenRouteConfig<
   Config,
@@ -201,14 +198,11 @@ type FlattenRouteConfig<
 /**
  * Removes parent query area from a given route path.
  *
- * Example:
- *
- * ```ts
- * type Path =  '/parentpath/?pkey1&pkey2/childpath/?ckey1&ckey2'
+ * @example
+ * type Path =  '/parent/?pkey1&pkey2/child?ckey1&ckey2'
  *
  * type Result = RemoveParentQueryArea<Path>;
- * // => '/parentpath/childpath/?ckey1&ckey2'
- * ```
+ * // => '/parent/child?ckey1&ckey2'
  */
 type RemoveParentQueryArea<Path extends string> = Path extends
   `${infer Head}${Symbols.Query}${string}${Symbols.PathSeparater}${infer Tail}`
@@ -218,23 +212,13 @@ type RemoveParentQueryArea<Path extends string> = Path extends
 /**
  * Removes parent query string from the flattened route configuration.
  *
- * Example:
- *
- * ```ts
+ * @example
  * const route_config = {
  *  parent: {
- *    path: '/parentpath?pkey1&pkey2',
+ *    path: '/parent?pkey1&pkey2',
  *    children: {
  *      child: {
- *        path: '/childpath?ckey1&ckey2'
- *      }
- *    }
- *  },
- *  external: {
- *    path: 'https://example.com?pkey1&pkey2',
- *    children: {
- *      child: {
- *        path: 'https://example.com/childpath?ckey1&ckey2'
+ *        path: '/child?ckey1&ckey2'
  *      }
  *    }
  *  }
@@ -242,14 +226,11 @@ type RemoveParentQueryArea<Path extends string> = Path extends
  *
  * type Result = PrunePaths<typeof route_config>;
  * // {
- * //   'parent': '/parentpath?pkey1&pkey2',
- * //   'parent/child': '/parentpath/childpath?ckey1&ckey2',
- * //   'external': 'https://example.com?pkey1&pkey2',
- * //   'external/child': 'https://example.com/childpath/?ckey1&ckey2
+ * //   'parent': '/parent?pkey1&pkey2',
+ * //   'parent/child': '/parent/child?ckey1&ckey2'
  * // }
- * ```
  */
-type PrunePaths<Config> = Config extends FlatRouteConfig ? {
+type FlatRouteConfigRemovedParentQueryArea<Config> = Config extends FlatRouteConfig ? {
     [RouteId in keyof Config]: Config[RouteId] extends
       `${infer Protocol}:/${infer Rest}`
       ? `${Protocol}:/${RemoveParentQueryArea<Rest>}`
@@ -291,17 +272,15 @@ type PrunePaths<Config> = Config extends FlatRouteConfig ? {
  * // }
  * ```
  */
-type FlatRoutes<Config> = PrunePaths<FlattenRouteConfig<Config>>;
+type FlatRoutes<Config> = FlatRouteConfigRemovedParentQueryArea<FlattenRouteConfig<Config>>;
 
 type RemoveQueryArea<Path extends string> = Path extends
-  `${infer RoutePath}?${string}` ? RoutePath : Path;
+  `${infer RoutePath}${Symbols.Query}${string}` ? RoutePath : Path;
 
 /**
  * Extracts route data, including path and query parameters, for a given route configuration.
  *
- * Example:
- *
- * ```ts
+ * @example
  * type FlatRouteConfig = {
  *  'parent': '/parentpath?key',
  *  'parent/child': '/parentpath/:param',
@@ -324,27 +303,27 @@ type RemoveQueryArea<Path extends string> = Path extends
  * //     query: never;
  * //   }
  * // }
- * ```
  */
-type ExtractRouteData<FlatRoute extends FlatRouteConfig> = {
-  [RouteId in keyof FlatRoute]: {
-    path: RemoveConstraintArea<RemoveQueryArea<FlatRoute[RouteId]>>;
-    params: PathParams<FlatRoute[RouteId]>;
-    query: Partial<QueryParams<FlatRoute[RouteId]>>;
+type ExtractRouteData<Routes extends FlatRouteConfig> = {
+  [RouteId in keyof Routes]: {
+    path: RemoveConstraintArea<RemoveQueryArea<Routes[RouteId]>>;
+    params: PathParams<Routes[RouteId]>;
+    query: Partial<QueryParams<Routes[RouteId]>>;
   };
 };
 
-/**
- * Extracts path and query parameters for a given route.
- */
 type ParamArgs<
   Config extends FlatRouteConfig,
   RouteId extends keyof Config,
-> = ExtractRouteData<Config>[RouteId]["params"] extends never
-  ? [undefined?, ExtractRouteData<Config>[RouteId]["query"]?]
+> = ExtractRouteData<Config>[RouteId]["params"] extends never ? [
+    undefined?,
+    ...(ExtractRouteData<Config>[RouteId]["query"] extends never ? []
+      : ExtractRouteData<Config>[RouteId]["query"][]),
+  ]
   : [
     ExtractRouteData<Config>[RouteId]["params"],
-    ExtractRouteData<Config>[RouteId]["query"]?,
+    ...(ExtractRouteData<Config>[RouteId]["query"] extends never ? []
+      : ExtractRouteData<Config>[RouteId]["query"][]),
   ];
 
 /**
