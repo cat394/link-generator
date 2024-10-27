@@ -9,7 +9,6 @@ import type {
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
 import { remove_query_area } from "./utils.ts";
-import { flatten_route_config } from "./flatten_route_config.ts";
 
 /**
  * 	This function create link generator.
@@ -86,6 +85,75 @@ export function link_generator<T extends RouteConfig>(
 
     return path;
   };
+}
+
+/**
+ * Flattens the route configuration object.
+ *
+ * This function takes a nested route configuration object and flattens it
+ * into a single-level object where the keys are the concatenated paths.
+ *
+ * @param route_config - The route configuration to flatten.
+ * @param parent_path - The parent path, used internally during recursion.
+ * @param result - The result object, used internally during recursion.
+ * @returns The flattened route configuration.
+ * 
+ * @example
+ * const route_config = {
+ *   home: {
+ *     path: '/'
+ *   },
+ *   users: {
+ *     path: '/users',
+ *     children: {
+ *       user: {
+ *         path: '/id'
+ *       }
+ *     }
+ *   }
+ * } as const satisfies RouteConfig;
+ *
+ * const flat_routes = flatten_route_config(route_config);
+ * // {
+ * //   home: '/',
+ * //   users: '/users',
+ * //   'users/user': '/users/:id'
+ * // }
+ */
+export function flatten_route_config<Config extends RouteConfig>(
+  route_config: Config,
+  parent_path = "",
+  result: FlatRouteConfig = {},
+): FlatRoutes<Config> {
+  for (const parent_route_id in route_config) {
+    const route = route_config[parent_route_id];
+
+    const current_path = route.path;
+
+    const path_with_parent = `${parent_path}${current_path}`;
+
+    result[parent_route_id] = path_with_parent;
+
+    if (route.children) {
+      const parent_path_removed_query_area = remove_query_area(
+        path_with_parent,
+      );
+
+      const children = flatten_route_config(
+        route.children,
+        parent_path_removed_query_area,
+      );
+
+      for (const child_route_id in children) {
+        const child_route_id_with_parent =
+          `${parent_route_id}${Symbols.PathSeparater}${child_route_id}`;
+
+        result[child_route_id_with_parent] = children[child_route_id];
+      }
+    }
+  }
+
+  return result as FlatRoutes<Config>;
 }
 
 function create_routes_map(flat_route: FlatRouteConfig) {
