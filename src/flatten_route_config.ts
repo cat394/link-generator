@@ -25,7 +25,7 @@ import type { FlatRouteConfig, FlatRoutes, RouteConfig } from "./types.ts";
  *   }
  * } as const satisfies RouteConfig;
  *
- * const flat_route_config = flatten_route_config(route_config);
+ * const flat_routes = flatten_route_config(route_config);
  * // {
  * //   home: '/',
  * //   users: '/users',
@@ -48,12 +48,14 @@ export function flatten_route_config<Config extends RouteConfig>(
 
     const current_path = route.path;
 
-    const full_path = `${parent_path}${current_path}`;
+    const path_with_parent = `${parent_path}${current_path}`;
 
-    result[parent_route_id] = full_path;
+    result[parent_route_id] = path_with_parent;
 
     if (route.children) {
-      const parent_path_removed_query_area = remove_query_area(full_path);
+      const parent_path_removed_query_area = remove_query_area(
+        path_with_parent,
+      );
 
       const children = flatten_route_config(
         route.children,
