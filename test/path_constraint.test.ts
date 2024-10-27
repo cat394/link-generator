@@ -1,12 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
-import { link_generator } from "../src/link_generator.ts";
-import {
-  type ExtractRouteData,
-  type FlatRoutes,
-  flatten_route_config,
-  type RouteConfig,
-} from "../src/mod.ts";
+import { flatten_route_config, link_generator } from "../src/link_generator.ts";
+import type { ExtractRouteData, FlatRoutes, RouteConfig } from "../src/mod.ts";
 
 const route_config = {
   string_param: {
@@ -53,8 +48,6 @@ const route_config = {
     path: "/?key<(*string|*number|*boolean)>",
   },
 } as const satisfies RouteConfig;
-
-const flat_route_config = flatten_route_config(route_config);
 
 Deno.test("FlatRoutes type", () => {
   type ExpectedFlatRoutes = {
@@ -155,13 +148,15 @@ Deno.test("ExtractRouteData type", () => {
 
   assertType<
     IsExact<
-      ExtractRouteData<typeof flat_route_config>,
+      ExtractRouteData<FlatRoutes<typeof route_config>>,
       ExpectedExtractRouteData
     >
   >(true);
 });
 
 Deno.test("flatten_route_config", () => {
+  const flat_route_config = flatten_route_config(route_config);
+
   const expected_flat_route_config = {
     string_param: "/:param<string>",
     number_param: "/:param<number>",

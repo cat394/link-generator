@@ -1,12 +1,11 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
-import { link_generator } from "../src/link_generator.ts";
-import {
-  type DefaultParamValue,
-  type ExtractRouteData,
-  type FlatRoutes,
-  flatten_route_config,
-  type RouteConfig,
+import { flatten_route_config, link_generator } from "../src/link_generator.ts";
+import type {
+  DefaultParamValue,
+  ExtractRouteData,
+  FlatRoutes,
+  RouteConfig,
 } from "../src/mod.ts";
 
 const route_config = {
@@ -33,8 +32,6 @@ const route_config = {
     },
   },
 } as const satisfies RouteConfig;
-
-const flat_route_config = flatten_route_config(route_config);
 
 Deno.test("FlatRoutes type", () => {
   type ExpectedFlatRoutes = {
@@ -98,6 +95,8 @@ Deno.test("ExtractRouteData type", () => {
 });
 
 Deno.test("flatten_route_config", () => {
+  const flat_route_config = flatten_route_config(route_config);
+
   const expected_flat_route_config = {
     root: "/:param",
     with_name: "/name/:param",

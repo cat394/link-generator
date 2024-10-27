@@ -1,12 +1,11 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
-import { link_generator } from "../src/link_generator.ts";
-import {
-  type DefaultParamValue,
-  type ExtractRouteData,
-  type FlatRoutes,
-  flatten_route_config,
-  type RouteConfig,
+import { flatten_route_config, link_generator } from "../src/link_generator.ts";
+import type {
+  DefaultParamValue,
+  ExtractRouteData,
+  FlatRoutes,
+  RouteConfig,
 } from "../src/mod.ts";
 
 const route_config = {
@@ -194,31 +193,56 @@ Deno.test("create_link_generator", async (t) => {
   });
 
   await t.step("multiple query", () => {
-    const path_to_multiple_query = link("multiple_query", undefined, {
-      key1: "a",
-    }, { key2: "b" });
+    const path_to_multiple_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "a",
+      },
+      { key2: "b" },
+    );
     assertEquals(path_to_multiple_query, "/?key1=a&key2=b");
   });
 
   await t.step("should empty or undefined query is not generated", () => {
-    const first_empty_string_query = link("multiple_query", undefined, {
-      key1: "",
-    }, { key2: "b" });
+    const first_empty_string_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "",
+      },
+      { key2: "b" },
+    );
     assertEquals(first_empty_string_query, "/?key2=b");
 
-    const first_undefined_query = link("multiple_query", undefined, {
-      key1: undefined,
-    }, { key2: "b" });
+    const first_undefined_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "b" },
+    );
     assertEquals(first_undefined_query, "/?key2=b");
 
-    const last_empty_string_query = link("multiple_query", undefined, {
-      key1: "a",
-    }, { key2: "" });
+    const last_empty_string_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "a",
+      },
+      { key2: "" },
+    );
     assertEquals(last_empty_string_query, "/?key1=a");
 
-    const last_undefined_query = link("multiple_query", undefined, {
-      key1: undefined,
-    }, { key2: "b" });
+    const last_undefined_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "b" },
+    );
     assertEquals(last_undefined_query, "/?key2=b");
   });
 });
