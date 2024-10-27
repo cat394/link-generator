@@ -139,23 +139,25 @@ function create_query_string_from_object(query: Partial<Param>): string {
       ([key, value]) =>
         `${key}=${encodeURIComponent(value as DefaultParamValue)}`,
     )
-    .join("&");
+    .join(Symbols.QuerySeparator);
 }
 
 function process_queries(query_params: Param[]): string {
-  let queries_left = query_params.length;
-
   let qs = "";
 
   for (const query_param of query_params) {
-    qs += create_query_string_from_object(query_param as Param);
+		const partial_qs = create_query_string_from_object(query_param);
 
-    queries_left--;
+		qs += partial_qs;
 
-    if (qs !== "" && queries_left !== 0) {
+    if (partial_qs !== "") {
       qs += "&";
     }
   }
+
+	if (qs.endsWith(Symbols.QuerySeparator)) {
+		qs = qs.slice(0, -Symbols.QuerySeparator.length);
+	}
 
   return qs;
 }
