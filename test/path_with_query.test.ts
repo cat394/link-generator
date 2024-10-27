@@ -244,5 +244,15 @@ Deno.test("create_link_generator", async (t) => {
       { key2: "b" },
     );
     assertEquals(last_undefined_query, "/?key2=b");
+
+    const none_queries = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "" },
+    );
+    assertEquals(none_queries, "/");
   });
 });
