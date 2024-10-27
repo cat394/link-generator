@@ -8,7 +8,6 @@ import type {
   RouteConfig,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
-import { remove_query_area } from "./utils.ts";
 
 /**
  * 	This function create link generator.
@@ -151,6 +150,15 @@ export function flatten_route_config(
 
   return result;
 }
+
+function remove_query_area(path: string): string {
+  const starting_query_index = path.indexOf(Symbols.Query);
+
+  const is_include_query = starting_query_index > 0;
+
+  return is_include_query ? path.slice(0, starting_query_index) : path;
+}
+
 
 function create_routes_map(flat_route: FlatRouteConfig) {
   const routes_map = new Map();
