@@ -307,11 +307,11 @@ type RemoveQueryArea<Path extends string> = Path extends
  * //   }
  * // }
  */
-type ExtractRouteData<Routes extends FlatRouteConfig> = {
-  [RouteId in keyof Routes]: {
-    path: RemoveConstraintArea<RemoveQueryArea<Routes[RouteId]>>;
-    params: PathParams<Routes[RouteId]>;
-    query: Partial<QueryParams<Routes[RouteId]>>;
+type ExtractRouteData<Config extends FlatRouteConfig> = {
+  [RouteId in keyof Config]: {
+    path: RemoveConstraintArea<RemoveQueryArea<Config[RouteId]>>;
+    params: PathParams<Config[RouteId]>;
+    query: Partial<QueryParams<Config[RouteId]>>;
   };
 };
 
