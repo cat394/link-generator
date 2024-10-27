@@ -97,7 +97,7 @@ export function link_generator<T extends RouteConfig>(
  * @param parent_path - The parent path, used internally during recursion.
  * @param result - The result object, used internally during recursion.
  * @returns The flattened route configuration.
- * 
+ *
  * @example
  * const route_config = {
  *   home: {
