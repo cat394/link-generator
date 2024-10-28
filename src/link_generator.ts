@@ -159,7 +159,6 @@ function remove_query_area(path: string): string {
   return is_include_query ? path.slice(0, starting_query_index) : path;
 }
 
-
 function create_routes_map(flat_route: FlatRouteConfig) {
   const routes_map = new Map();
 
