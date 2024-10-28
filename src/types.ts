@@ -258,7 +258,7 @@ type FlatRouteConfigRemovedParentQueryArea<Config> = Config extends
  *    path: '/parent2path/?key1&key2',
  *    children: {
  *      child: {
- *        path: '/:param
+ *        path: '/:param'
  *      }
  *    }
  *  }
