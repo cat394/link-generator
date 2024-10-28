@@ -45,8 +45,7 @@ bunx jsr add @kokomi/link-generator
 
    ```ts
    import {
-     create_link_generator,
-     flatten_route_config,
+     link_generator,
      type RouteConfig,
    } from "@kokomi/link-generator";
 
