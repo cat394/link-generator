@@ -1,12 +1,11 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
-import {
-  create_link_generator,
-  type DefaultParamValue,
-  type ExtractRouteData,
-  type FlatRoutes,
-  flatten_route_config,
-  type RouteConfig,
+import { flatten_route_config, link_generator } from "../src/link_generator.ts";
+import type {
+  DefaultParamValue,
+  ExtractRouteData,
+  FlatRoutes,
+  RouteConfig,
 } from "../src/mod.ts";
 
 const route_config = {
@@ -90,36 +89,34 @@ Deno.test("ExtractRouteData type", () => {
     multiple_query: {
       path: "/";
       params: never;
-      query: Partial<
-        Record<"key1", DefaultParamValue> & Record<"key2", DefaultParamValue>
-      >;
+      query: Partial<{ key1: DefaultParamValue; key2: DefaultParamValue }>;
     };
   };
 
   assertType<
     IsExact<
-      ExtractRouteData<typeof flat_route_config>,
+      ExtractRouteData<FlatRoutes<typeof route_config>>,
       ExpectedExtractRouteData
     >
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
   const expected_flat_route_config = {
-    root: "/?key",
-    with_name: "/name?key",
+    root: "/",
+    with_name: "/name",
     nested: "/nested",
-    "nested/deep": "/nested/deep?key",
-    nested_with_parent_param: "/nested?parent-key",
-    "nested_with_parent_param/deep": "/nested/deep?child-key",
-    multiple_query: "/?key1&key2",
-  } as const satisfies FlatRoutes<typeof route_config>;
+    "nested/deep": "/nested/deep",
+    nested_with_parent_param: "/nested",
+    "nested_with_parent_param/deep": "/nested/deep",
+    multiple_query: "/",
+  };
 
   assertEquals(flat_route_config, expected_flat_route_config);
 });
 
 Deno.test("create_link_generator", async (t) => {
-  const link = create_link_generator(flat_route_config);
+  const link = link_generator(route_config);
 
   await t.step("string param value", () => {
     const path_to_root = link("root", undefined, { key: "a" });
@@ -178,32 +175,6 @@ Deno.test("create_link_generator", async (t) => {
     assertEquals(path_to_root_with_falsy_param_value, "/?key=0");
   });
 
-  await t.step(
-    "query is undefined, no query string should be generated",
-    () => {
-      const path_to_root = link("root", undefined, undefined);
-      const path_to_with_name = link("with_name", undefined, undefined);
-      const path_to_nested = link("nested");
-      const path_to_nested_deep = link("nested/deep", undefined, undefined);
-      const path_to_nested_with_parent_param = link(
-        "nested_with_parent_param",
-        undefined,
-        undefined,
-      );
-      const path_to_nested_deep_with_parent_param = link(
-        "nested_with_parent_param/deep",
-        undefined,
-        undefined,
-      );
-      assertEquals(path_to_root, "/");
-      assertEquals(path_to_with_name, "/name");
-      assertEquals(path_to_nested, "/nested");
-      assertEquals(path_to_nested_deep, "/nested/deep");
-      assertEquals(path_to_nested_with_parent_param, "/nested");
-      assertEquals(path_to_nested_deep_with_parent_param, "/nested/deep");
-    },
-  );
-
   await t.step("query should be optional when generating paths", () => {
     const path_to_root = link("root");
     const path_to_with_name = link("with_name");
@@ -222,10 +193,66 @@ Deno.test("create_link_generator", async (t) => {
   });
 
   await t.step("multiple query", () => {
-    const path_to_multiple_query = link("multiple_query", undefined, {
-      key1: "a",
-      key2: "b",
-    });
+    const path_to_multiple_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "a",
+      },
+      { key2: "b" },
+    );
     assertEquals(path_to_multiple_query, "/?key1=a&key2=b");
+  });
+
+  await t.step("should empty or undefined query is not generated", () => {
+    const first_empty_string_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "",
+      },
+      { key2: "b" },
+    );
+    assertEquals(first_empty_string_query, "/?key2=b");
+
+    const first_undefined_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "b" },
+    );
+    assertEquals(first_undefined_query, "/?key2=b");
+
+    const last_empty_string_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: "a",
+      },
+      { key2: "" },
+    );
+    assertEquals(last_empty_string_query, "/?key1=a");
+
+    const last_undefined_query = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "b" },
+    );
+    assertEquals(last_undefined_query, "/?key2=b");
+
+    const none_queries = link(
+      "multiple_query",
+      undefined,
+      {
+        key1: undefined,
+      },
+      { key2: "" },
+    );
+    assertEquals(none_queries, "/");
   });
 });

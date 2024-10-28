@@ -1,12 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
-import {
-  create_link_generator,
-  type ExtractRouteData,
-  type FlatRoutes,
-  flatten_route_config,
-  type RouteConfig,
-} from "../src/mod.ts";
+import { flatten_route_config, link_generator } from "../src/link_generator.ts";
+import type { ExtractRouteData, FlatRoutes, RouteConfig } from "../src/mod.ts";
 
 const route_config = {
   string_param: {
@@ -53,8 +48,6 @@ const route_config = {
     path: "/?key<(*string|*number|*boolean)>",
   },
 } as const satisfies RouteConfig;
-
-const flat_route_config = flatten_route_config(route_config);
 
 Deno.test("FlatRoutes type", () => {
   type ExpectedFlatRoutes = {
@@ -155,29 +148,31 @@ Deno.test("ExtractRouteData type", () => {
 
   assertType<
     IsExact<
-      ExtractRouteData<typeof flat_route_config>,
+      ExtractRouteData<FlatRoutes<typeof route_config>>,
       ExpectedExtractRouteData
     >
   >(true);
 });
 
-Deno.test("flatten_route_config", () => {
+Deno.test("flatten_route_config should return flat route config and remove query area", () => {
+  const flat_route_config = flatten_route_config(route_config);
+
   const expected_flat_route_config = {
     string_param: "/:param<string>",
     number_param: "/:param<number>",
     boolean_param: "/:param<boolean>",
-    string_query: "/?key<string>",
-    number_query: "/?key<number>",
-    boolean_query: "/?key<boolean>",
+    string_query: "/",
+    number_query: "/",
+    boolean_query: "/",
     strings_union_param: "/:param<(a|b|c)>",
     numbers_union_param: "/:param<(*1|*2|*3)>",
     mix_union_param: "/:param<(a|*1|*true)>",
     primitive_union_param: "/:param<(*string|*number|*boolean)>",
-    strings_union_query: "/?key<(a|b|c)>",
-    numbers_union_query: "/?key<(*1|*2|*3)>",
-    mix_union_query: "/?key<(a|*1|*true)>",
-    primitive_union_query: "/?key<(*string|*number|*boolean)>",
-  } as const satisfies FlatRoutes<typeof route_config>;
+    strings_union_query: "/",
+    numbers_union_query: "/",
+    mix_union_query: "/",
+    primitive_union_query: "/",
+  };
 
   assertEquals(flat_route_config, expected_flat_route_config);
 });
@@ -185,7 +180,7 @@ Deno.test("flatten_route_config", () => {
 Deno.test(
   "The constraint area should be removed when creating the path",
   () => {
-    const link = create_link_generator(flat_route_config);
+    const link = link_generator(route_config);
     const path = link("string_param", { param: "a" });
     assertEquals(path, "/a");
   },

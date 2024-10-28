@@ -65,24 +65,13 @@ bunx jsr add @kokomi/link-generator
    } as const satisfies RouteConfig;
    ```
 
-2. Flatten the object:
+2. Create a generator:
 
    ```ts
-   const flat_routes = flatten_route_config(route_config);
-   // {
-   //   home: "/",
-   //   users: "/users",
-   //   "users/user": "/users/:id"
-   // }
+   const link = link_generator(route_config);
    ```
 
-3. Create a generator:
-
-   ```ts
-   const link = create_link_generator(flat_routes);
-   ```
-
-4. Generate links:
+3. Generate links:
 
    ```ts
    link("home"); // => '/'
@@ -92,24 +81,32 @@ bunx jsr add @kokomi/link-generator
 
 ## Query
 
+The `link` function accepts a list of objects as query parameter generators
+starting from the second argument onwards. In other words, the types of the
+arguments from the second position onward in the `link` function are any number
+of `Partial<Query>` types.
+
+Moreover, if the object for setting query parameters contains an empty string or
+an `undefined` value, the `link` function will not generate that query.
+
 1. Create a generator:
 
    ```ts
    const route_config = {
-     post: {
-       path: "/posts/:id?page",
+     products: {
+       path: "/products?color",
      },
    } as const satisfies RouteConfig;
 
-   const flat_routes = flatten_route_config(route_config);
-
-   const link = create_link_generator(flat_routes);
+   const link = link_generator(route_config);
    ```
 
 2. Generate a link:
 
    ```ts
-   link("post", { id: "1" }, { page: 10 }); // => '/posts/1?page=10'
+   link("products", undefined, { color: "red" }, { color: "blue" }); // => '/products?color=red&color=blue'
+
+   link("products", undefined, { color: "" }, { color: undefined }); // => /products
    ```
 
 ## Constraint Area
@@ -169,9 +166,7 @@ constraints can be placed on path and query parameters:
      },
    } as const satisfies RouteConfig;
 
-   const flat_routes = flatten_route_config(route_config);
-
-   const link = create_link_generator(flat_routes);
+   const link = link_generator(route_config);
    ```
 
 2. Generate links:
@@ -216,9 +211,7 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-const flat_routes = flatten_route_config(route_config);
-
-const link = create_link_generator(flat_routes);
+const link = link_generator(route_config);
 
 link("external/youtube/video", undefined, { v: "123" });
 // => 'https://youtube.com/watch?v=123'
@@ -239,9 +232,7 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-const flat_routes = flatten_route_config(route_config);
-
-type RouteType = ExtractRouteData<typeof flat_routes>;
+type RouteType = ExtractRouteData<FlatRoutes<typeof route_config>>;
 // {
 //     user: {
 //         path: "/users/:id";
