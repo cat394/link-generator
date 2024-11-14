@@ -44,10 +44,7 @@ bunx jsr add @kokomi/link-generator
 1. Define a route configuration object:
 
    ```ts
-   import {
-     link_generator,
-     type RouteConfig,
-   } from "@kokomi/link-generator";
+   import { link_generator, type RouteConfig } from "@kokomi/link-generator";
 
    const route_config = {
      home: {
