@@ -2,7 +2,7 @@
 
 ![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
 
-A simple type-safe generator for creating links.
+A simple type-safe link generator.
 
 This is distributed through a package registry called
 [JSR](https://jsr.io/@kokomi/link-generator).
@@ -97,7 +97,7 @@ an `undefined` value, the `link` function will not generate that query.
    const link = link_generator(route_config);
    ```
 
-2. Generate a link:
+2. Generate links:
 
    ```ts
    link("products", undefined, { color: "red" }, { color: "blue" }); // => '/products?color=red&color=blue'
@@ -132,12 +132,12 @@ constraints can be placed on path and query parameters:
 - **Union Type**
 
   If you want to be strict and require that params and query only accept certain
-  values ​​other than string, number, and boolean, use the `<(Type1|Type2)>`
+  values other than string, number, and boolean, use the `<(Type1|Type2)>`
   syntax.
 
   The type of each segment of a union type defaults to its string literal type,
-  but you can manually cast strings that can be converted to a number, such as
-  1, or to a Boolean, such as true or false, or strings that represent types
+  but you can manually cast strings that can be converted to a `number`, such as
+  1, or to `boolean`, such as `true` or `false`, or strings that represent types
   such as string, number, or boolean. To do this, simply prepend `*` to the
   string you want to cast, for example `*123`, `*true`, or `*string`.
 
