@@ -2,7 +2,7 @@
 
 ![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
 
-A simple type-safe link generator.
+Creates links type-safely.
 
 This is distributed through a package registry called
 [JSR](https://jsr.io/@kokomi/link-generator).
