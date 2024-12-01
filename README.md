@@ -184,7 +184,7 @@ constraints can be placed on path and query parameters:
    // Query type: { width: 'auto' | number }
    ```
 
-## Absolute Paths
+## URL
 
 If the link you want to generate contains a protocol, special type inference
 needs to be done, so write the protocol and domain like this, with the protocol
@@ -228,7 +228,7 @@ const route_config = {
   },
 } as const satisfies RouteConfig;
 
-type RouteType = ExtractRouteData<FlatRoutes<typeof route_config>>;
+type RouteData = ExtractRouteData<FlatRoutes<typeof route_config>>;
 // {
 //     user: {
 //         path: "/users/:id";
