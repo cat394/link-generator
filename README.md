@@ -222,6 +222,8 @@ In addition, the `FlatRoutes` type is provided to flatten your nested route conf
 For example, consider the following route configuration:
 
 ```ts
+import type { FlatRoutes } from "@kokomi/link-generator";
+
 const route_config = {
   users: {
     path: "/users",
@@ -232,9 +234,11 @@ const route_config = {
     },
   },
 } as const satisfies RouteConfig;
+
+type Flattened = FlatRoutes<typeof route_config>;
 ```
 
-Using `FlatRoutes<typeof route_config>` will produce a flattened object type like this:
+The `Flattened` type then looks like this:
 
 ```ts
 {
