@@ -225,7 +225,7 @@ value is the corresponding path.
 For example, consider the following route configuration:
 
 ```ts
-import type { FlatRoutes } from "@kokomi/link-generator";
+import type { FlatRoutes, RouteConfig } from "@kokomi/link-generator";
 
 const route_config = {
   users: {
