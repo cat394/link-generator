@@ -215,9 +215,12 @@ link("external/youtube/video", undefined, { v: "123" });
 
 ## Route Type
 
-In this library, you can obtain detailed type information for each route using the `ExtractRouteData` type. 
+In this library, you can obtain detailed type information for each route using
+the `ExtractRouteData` type.
 
-In addition, the `FlatRoutes` type is provided to flatten your nested route configuration into an object where each key represents a unique route ID and the value is the corresponding path.
+In addition, the `FlatRoutes` type is provided to flatten your nested route
+configuration into an object where each key represents a unique route ID and the
+value is the corresponding path.
 
 For example, consider the following route configuration:
 
@@ -247,9 +250,13 @@ The `Flattened` type then looks like this:
 }
 ```
 
-This flattening mechanism makes it easier to manage nested routes by ensuring the uniqueness of route IDs and combining the nested paths in a predictable manner.
+This flattening mechanism makes it easier to manage nested routes by ensuring
+the uniqueness of route IDs and combining the nested paths in a predictable
+manner.
 
-Furthermore, the `ExtractRouteData` type leverages these flattened routes to extract additional type information such as parameters and query types. For example:
+Furthermore, the `ExtractRouteData` type leverages these flattened routes to
+extract additional type information such as parameters and query types. For
+example:
 
 ```ts
 const route_config = {
