@@ -238,7 +238,7 @@ type RouteData = ExtractRouteData<FlatRoutes<typeof route_config>>;
 //     news: {
 //         path: "/news";
 //         params: never;
-//         query: Record<"archived", boolean>;
+//         query: Partial<Record<"archived", boolean>>;
 //     };
 // }
 ```
