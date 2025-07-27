@@ -1,4 +1,4 @@
-import { link_generator } from "./link_generator.ts";
+import { link_generator, RouteContext } from "./link_generator.ts";
 import type {
   DefaultParamValue,
   ExtractRouteData,
@@ -7,6 +7,7 @@ import type {
   Param,
   Route,
   RouteConfig,
+  LinkGeneratorOptions
 } from "./types.ts";
 
 export {
@@ -18,4 +19,6 @@ export {
   type Param,
   type Route,
   type RouteConfig,
+  type LinkGeneratorOptions,
+  RouteContext,
 };
