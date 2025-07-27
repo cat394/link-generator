@@ -139,7 +139,7 @@ export function link_generator<Config extends RouteConfig>(
     ctx._path = path;
 
     if (!path_params && !is_exist_qurey) {
-      path = transform(ctx);
+      path = transform(ctx) ?? ctx.path;
       return path;
     }
 
@@ -153,7 +153,7 @@ export function link_generator<Config extends RouteConfig>(
       ctx._query = create_query_context(query_params as Param[]);
     }
 
-    path = transform(ctx);
+    path = transform(ctx) ?? ctx.path;
 
     if (should_append_query && is_exist_qurey) {
       const qs = generate_query_string(query_params as Param[]);

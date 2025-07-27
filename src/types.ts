@@ -347,7 +347,7 @@ type LinkGenerator<Config extends FlatRouteConfig> = <
 
 type LinkGeneratorOptions<Config extends RouteConfig> = {
   should_append_query?: boolean;
-  transform?: (context: RouteContext<Config>) => string;
+  transform?: (context: RouteContext<Config>) => string | undefined;
 };
 
 type QueryContext<T extends Param> = {
