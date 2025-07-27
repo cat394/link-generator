@@ -4,7 +4,7 @@
 
 Creates links type-safely.
 
-This is distributed through a package registry called
+This package distributed through a package registry called the
 [JSR](https://jsr.io/@kokomi/link-generator).
 
 ## Installation
@@ -77,13 +77,13 @@ bunx jsr add @kokomi/link-generator
 
 ## Query
 
-The `link` function accepts a list of objects as query parameter generators
-starting from the second argument onwards. In other words, the types of the
+The link function accepts a list of objects as query parameter generators,
+starting from the second argument onward. In other words, the types of the
 arguments from the second position onward in the `link` function are any number
 of `Partial<Query>` types.
 
 Moreover, if the object for setting query parameters contains an empty string or
-an `undefined` value, the `link` function will not generate that query.
+an `undefined`, the `link` function will not generate that query.
 
 1. Create a generator:
 
@@ -105,14 +105,84 @@ an `undefined` value, the `link` function will not generate that query.
    link("products", undefined, { color: "" }, { color: undefined }); // => /products
    ```
 
+## Options
+
+The `link_generator` function also accepts an optional options object as its
+second argument.
+
+### should_append_query
+
+A boolean that specifies whether encoded query string should be appended to the
+final link. This option is especially useful when combined with the transform
+option to ensure that custom paths are preserved or enhanced with query strings
+as needed. Default is `true`.
+
+```ts
+const route_config = {
+  products: {
+    path: "/products?size",
+  },
+};
+
+const link = link_generator(route_config, { should_append_query: false });
+
+link("products", undefined, { size: "sm" }); // => /products (no size query string!)
+```
+
+### transform
+
+The `transform` option allows you to intercept and customize the generated path
+before it is finalized. It accepts a callback function that receives a
+`RouteContext` object containing detailed information such as the route ID,
+current path, params, and query values.
+
+The function should return either:
+
+- a `string` representing the custom path to use, or
+
+- `undefined` to indicate that the generator should fall back to the default
+  `ctx.path`.
+
+This makes it easy to override only specific cases while preserving the default
+behavior for others.
+
+If `should_append_query` is `true`, then any query string will still be appended
+to the returned string (whether from `transform` or fallback). To prevent this,
+you can set `should_append_query: false`.
+
+This option is useful when you want to customize routing logic, apply
+conditional rewrites, or insert static shortcuts programmatically.
+
+```ts
+const route_config = {
+  products: {
+    path: "/products?size",
+  },
+};
+
+const link = link_generator(route_config, {
+  transform: (ctx) => {
+    const { id, path, params, query } = ctx;
+
+    if (query.size) {
+      return "/custom";
+    }
+  },
+  should_append_query: false,
+});
+
+link("products"); // => /products
+link("products", { size: "sm" }); // => /custom
+```
+
 ## Constraint Area
 
 The type of values for path and query parameters is `string|number|boolean` by
 default. While this is sufficient in most cases, this type can be made more
 strict by defining a **constraint area**. This is a special string that can be
-included in the path, like `<Constraint>`. Conditions can be defined within open
-(`<`) and close (`>`) mountain brackets. In this field, the following three type
-constraints can be placed on path and query parameters:
+included in the path, like `<Constraint>`. Conditions can be defined within
+opening (`<`) and closing (`>`) angle brackets. In this field, the following
+three type constraints can be placed on path and query parameters:
 
 - **String Type**
 
@@ -328,8 +398,8 @@ The generated route ids would be:
 - parent2
 - parent2/child1
 
-This approach allows flexible creation of route ids while maintaining a broad
-namespace.
+This approach enables flexible route ID creation while ensuring uniqueness
+across a wide namespace.
 
 ## Acknowledgements
 
