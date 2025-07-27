@@ -130,12 +130,11 @@ export function link_generator<Config extends RouteConfig>(
     }
 
     const [path_params, ...query_params] = params;
-
     const is_exist_qurey = query_params.length > 0;
+    const ctx = new RouteContext<Config>(route_id);
 
     let path: string = path_template;
 
-    const ctx = new RouteContext<Config>(route_id);
     ctx._path = path;
 
     if (!path_params && !is_exist_qurey) {
@@ -208,9 +207,7 @@ export function flatten_route_config(
 ): FlatRouteConfig {
   for (const parent_route_name in route_config) {
     const route = route_config[parent_route_name];
-
     const current_path = remove_query_area(route.path);
-
     const path_with_parent = `${parent_path}${current_path}`;
 
     result[parent_route_name] = path_with_parent;
@@ -248,7 +245,6 @@ function create_query_context(query_params: Param[]): QueryContext<Param> {
 
 function remove_query_area(path: string): string {
   const starting_query_index = path.indexOf(Symbols.Query);
-
   const is_include_query = starting_query_index > 0;
 
   return is_include_query ? path.slice(0, starting_query_index) : path;
