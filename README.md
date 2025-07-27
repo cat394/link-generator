@@ -175,6 +175,24 @@ link("products"); // => /products
 link("products", { size: "sm" }); // => /custom
 ```
 
+## Errors
+
+If you pass a route ID that is not defined in your route configuration, the
+`link` function will throw an error at runtime. If you pass an empty string as
+the first argument, it will throw an error with the message:
+`Invalid route id: EMPTY_STRING`.
+
+```ts
+const route_config = {
+  home: { path: "/" },
+} as const satisfies RouteConfig;
+
+const link = link_generator(route_config);
+
+link("nonexistent"); // ❌ Throws: Error: Invalid route id: nonexistent
+link(""); // ❌ Throws: Error: Invalid route id: EMPTY_STRING
+```
+
 ## Constraint Area
 
 The type of values for path and query parameters is `string|number|boolean` by
