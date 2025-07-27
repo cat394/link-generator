@@ -126,7 +126,9 @@ export function link_generator<Config extends RouteConfig>(
     const path_template = routes.get(route_id);
 
     if (!path_template || typeof path_template !== "string") {
-      throw new Error(`Invalid route id: ${String(route_id) || "EMPTY_STRING" }`);
+      throw new Error(
+        `Invalid route id: ${String(route_id) || "EMPTY_STRING"}`,
+      );
     }
 
     const [path_params, ...query_params] = params;
