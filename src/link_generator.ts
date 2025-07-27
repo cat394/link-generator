@@ -43,7 +43,7 @@ export class RouteContext<Config extends RouteConfig> {
     this.#path = new_path;
   }
 
-  get path() {
+  get path(): string {
     return this.#path;
   }
 
