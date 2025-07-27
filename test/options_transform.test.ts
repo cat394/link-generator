@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert/equals";
 import { spy } from "@std/testing/mock";
 import { link_generator, type RouteContext } from "../src/link_generator.ts";
-import type { RouteConfig } from "../src/types.ts";
+import type { LinkGeneratorOptions, RouteConfig } from "../src/types.ts";
 
 const route_config = {
 	foo: {
@@ -12,7 +12,7 @@ const route_config = {
 type TestRouteConfig = typeof route_config;
 
 function setup(
-	transformFn?: (ctx: RouteContext<TestRouteConfig>) => string,
+	transformFn?: LinkGeneratorOptions<TestRouteConfig>["transform"],
 	opts = {}
 ) {
 	const transform_spy = spy(
@@ -132,3 +132,34 @@ Deno.test(
 		});
 	}
 );
+
+Deno.test("transform returns undefined should fallback to ctx.path", () => {
+	const transform_fn = (ctx: RouteContext<TestRouteConfig>) => {
+		if (ctx.params.param === "custom") return "/custom-path";
+	};
+
+	const { link, transform_spy } = setup(transform_fn);
+
+	const result1 = link("foo", { param: "custom" });
+	assertEquals(result1, "/custom-path");
+
+	const result2 = link("foo", { param: "default" }, { a: "value" });
+	assertEquals(result2, "/foo/default?a=value");
+
+	const ctx1 = transform_spy.calls[0].args[0];
+	const ctx2 = transform_spy.calls[1].args[0];
+
+	assert_ctx(ctx1, {
+		id: "foo",
+		path: "/foo/custom",
+		params: { param: "custom" },
+		query: {},
+	});
+
+	assert_ctx(ctx2, {
+		id: "foo",
+		path: "/foo/default",
+		params: { param: "default" },
+		query: { a: ["value"] },
+	});
+});
