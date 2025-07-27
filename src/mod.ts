@@ -4,10 +4,10 @@ import type {
   ExtractRouteData,
   FlatRoutes,
   LinkGenerator,
+  LinkGeneratorOptions,
   Param,
   Route,
   RouteConfig,
-  LinkGeneratorOptions
 } from "./types.ts";
 
 export {
@@ -16,9 +16,9 @@ export {
   type FlatRoutes,
   link_generator,
   type LinkGenerator,
+  type LinkGeneratorOptions,
   type Param,
   type Route,
   type RouteConfig,
-  type LinkGeneratorOptions,
   RouteContext,
 };
