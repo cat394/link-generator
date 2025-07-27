@@ -1,3 +1,4 @@
+import type { RouteContext } from "./link_generator.ts";
 import type { Symbols } from "./symbols.ts";
 
 /**
@@ -344,14 +345,25 @@ type LinkGenerator<Config extends FlatRouteConfig> = <
   ...params: ParamArgs<Config, RouteId>
 ) => string;
 
+type LinkGeneratorOptions<Config extends RouteConfig> = {
+  should_append_query?: boolean;
+  transform?: (context: RouteContext<Config>) => string;
+};
+
+type QueryContext<T extends Param> = {
+  [K in keyof T]: T[K][];
+};
+
 export type {
   DefaultParamValue,
   ExtractRouteData,
   FlatRouteConfig,
   FlatRoutes,
   LinkGenerator,
+  LinkGeneratorOptions,
   Param,
   ParamArgs,
+  QueryContext,
   Route,
   RouteConfig,
 };

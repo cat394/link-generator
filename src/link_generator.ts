@@ -3,27 +3,88 @@ import type {
   FlatRouteConfig,
   FlatRoutes,
   LinkGenerator,
+  LinkGeneratorOptions,
   Param,
   ParamArgs,
+  QueryContext,
   RouteConfig,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
 
 /**
+ * Represents the context of a route during link generation.
+ *
+ * This class is primarily used in the `transform` function to provide
+ * additional context such as route ID, resolved path, path parameters, and
+ * query parameters in a structured form.
+ *
+ * @template Config - The type of the route configuration.
+ *
+ * @property id - The flattened route ID (e.g., "users/user").
+ * @property path - The raw path template before query or parameter substitution.
+ * @property params - The dynamic path parameters supplied to the link.
+ * @property query - A normalized query object that combines all query fragments.
+ */
+export class RouteContext<Config extends RouteConfig> {
+  #id: keyof FlatRoutes<Config>;
+  #path = "";
+  #params: Param = {};
+  #query: QueryContext<Param> = {};
+
+  constructor(id: keyof FlatRoutes<Config>) {
+    this.#id = id;
+  }
+
+  get id(): keyof FlatRoutes<Config> {
+    return this.#id;
+  }
+
+  set _path(new_path: string) {
+    this.#path = new_path;
+  }
+
+  get path() {
+    return this.#path;
+  }
+
+  set _params(new_params: Param) {
+    this.#params = new_params;
+  }
+
+  get params(): Param {
+    return this.#params;
+  }
+
+  set _query(new_query: QueryContext<Param>) {
+    this.#query = new_query;
+  }
+
+  get query(): QueryContext<Param> {
+    return this.#query;
+  }
+}
+
+/**
  * 	This function create link generator.
  *
  * @param route_config - The route object processed by the flatten_route_config function.
+ * @param options - Optional configuration to customize link generation.
+ * @param options.add_query - Whether to append query parameters to the generated URL.
+ *                             Defaults to `true`.
+ * @param options.transform - A hook function that receives a RouteContext and returns
+ *                             the final path string. Useful for custom transformations
+ *                             such as localization or path rewriting.
  *
  * @returns A function to generate links.
  *
- *  @example
- * 	import {
- *    link_generator,
- *    type RouteConfig
- *  } from '@kokomi/link-generator';
+ * @example
+ * import {
+ *   link_generator,
+ *   type RouteConfig
+ * } from '@kokomi/link-generator';
  *
- * 	const route_config = {
- * 		home: {
+ * const route_config = {
+ * 	home: {
  * 			path: '/'
  * 		},
  * 		users: {
@@ -51,8 +112,12 @@ import { Symbols } from "./symbols.ts";
  */
 export function link_generator<Config extends RouteConfig>(
   route_config: Config,
+  options?: LinkGeneratorOptions<Config>,
 ): LinkGenerator<FlatRoutes<Config>> {
   const routes = create_routes_map(flatten_route_config(route_config));
+  const should_append_query = options?.should_append_query ?? true;
+  const transform = options?.transform ??
+    ((ctx: RouteContext<Config>) => ctx.path);
 
   return <RouteId extends keyof FlatRoutes<Config>>(
     route_id: RouteId,
@@ -60,21 +125,37 @@ export function link_generator<Config extends RouteConfig>(
   ): string => {
     const path_template = routes.get(route_id);
 
+    if (!path_template || typeof path_template !== "string") {
+      throw new Error(`Invalid route id: ${String(route_id)}`);
+    }
+
     const [path_params, ...query_params] = params;
 
     const is_exist_qurey = query_params.length > 0;
 
     let path: string = path_template;
 
+    const ctx = new RouteContext<Config>(route_id);
+    ctx._path = path;
+
     if (!path_params && !is_exist_qurey) {
+      path = transform(ctx);
       return path;
     }
 
     if (path_params) {
       path = replace_params_area(path, path_params);
+      ctx._params = path_params;
+      ctx._path = path; // Update context path after replacing params
     }
 
     if (is_exist_qurey) {
+      ctx._query = create_query_context(query_params as Param[]);
+    }
+
+    path = transform(ctx);
+
+    if (should_append_query && is_exist_qurey) {
       const qs = generate_query_string(query_params as Param[]);
 
       if (qs !== "") {
@@ -93,9 +174,7 @@ export function link_generator<Config extends RouteConfig>(
  * into a single-level object where the keys are the concatenated paths.
  *
  * @param route_config - The route configuration to flatten.
- *
  * @param parent_path - The parent path, used internally during recursion.
- *
  * @param result - The result object, used internally during recursion.
  *
  * @returns The flattened route configuration.
@@ -144,6 +223,22 @@ export function flatten_route_config(
           `${parent_route_name}${Symbols.PathSeparater}${child_route_name}`;
 
         result[child_route_id] = children[child_route_name];
+      }
+    }
+  }
+
+  return result;
+}
+
+function create_query_context(query_params: Param[]): QueryContext<Param> {
+  const result = {} as QueryContext<Param>;
+
+  for (const q of query_params) {
+    for (const [key, value] of Object.entries(q)) {
+      if (!result[key]) {
+        result[key] = [value];
+      } else {
+        result[key].push(value);
       }
     }
   }
