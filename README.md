@@ -1,7 +1,5 @@
 # Link Generator
 
-![A purple-haired, pink-eyed character named Kokomi says, 'I wish broken links would just disappear from this world!'](https://github.com/cat394/link-generator/blob/main/images/thumbnail.webp)
-
 Creates links type-safely.
 
 This package distributed through a package registry called the
