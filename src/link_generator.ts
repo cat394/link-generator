@@ -123,14 +123,7 @@ export function link_generator<Config extends RouteConfig>(
     route_id: RouteId,
     ...params: ParamArgs<FlatRoutes<Config>, RouteId>
   ): string => {
-    const path_template = routes.get(route_id);
-
-    if (!path_template || typeof path_template !== "string") {
-      throw new Error(
-        `Invalid route id: ${String(route_id) || "EMPTY_STRING"}`,
-      );
-    }
-
+    const path_template = routes.get(route_id) as string;
     const [path_params, ...query_params] = params;
     const is_exist_qurey = query_params.length > 0;
     const ctx = new RouteContext<Config>(route_id);
