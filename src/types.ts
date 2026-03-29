@@ -347,12 +347,14 @@ type LinkGenerator<Config extends FlatRouteConfig> = <
 
 type LinkGeneratorOptions<Config extends RouteConfig> = {
   should_append_query?: boolean;
-  transform?: (context: RouteContext<Config>) => string | undefined;
+  transforms?: ((context: RouteContext<Config>) => undefined)[]
 };
 
 type QueryContext<T extends Param> = {
   [K in keyof T]: T[K][];
 };
+
+type QueryArg = Param & Record<string, undefined>;
 
 export type {
   DefaultParamValue,
@@ -366,4 +368,5 @@ export type {
   QueryContext,
   Route,
   RouteConfig,
+  QueryArg
 };
