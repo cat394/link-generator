@@ -1,8 +1,4 @@
-import type {
-  ParamsContext,
-  QueryContext,
-  RouteContext,
-} from "./link_generator.ts";
+import type { ParamsContext, RouteContext } from "./link_generator.ts";
 import type { Symbols } from "./symbols.ts";
 
 /**
@@ -349,9 +345,13 @@ type LinkGenerator<Config extends FlatRouteConfig> = <
   ...params: ParamArgs<Config, RouteId>
 ) => string;
 
+type FormatFn<Config extends RouteConfig> = (
+  context: RouteContext<Config>,
+) => string;
 type LinkGeneratorOptions<Config extends RouteConfig> = {
-  should_append_query?: boolean;
   transforms?: ((context: RouteContext<Config>) => void)[];
+  replace_params_fn?: FormatFn<Config>;
+  format_qs_fn?: FormatFn<Config>;
 };
 
 type QueryArgValue = DefaultParamValue | undefined;
@@ -364,7 +364,7 @@ type QueryArg = Record<string, QueryArgValue>;
 type RouteContextInit = Partial<{
   path: string;
   params: ParamsContext;
-  query: QueryContext;
+  query: URLSearchParams;
 }>;
 
 export type {
@@ -372,6 +372,7 @@ export type {
   ExtractRouteData,
   FlatRouteConfig,
   FlatRoutes,
+  FormatFn,
   LinkGenerator,
   LinkGeneratorOptions,
   Param,
