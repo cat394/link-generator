@@ -15,6 +15,13 @@ import { Symbols } from "./symbols.ts";
 
 /*
  * Represents a context for path parameters during link generation.
+ * This class extends the built-in Map to provide a convenient way
+ * to manage path parameters. It accepts an object of parameters and initializes the map accordingly.
+ *
+ * @example
+ * const params = new ParamsContext({ id: 'alice', category: 'books' });
+ * console.log(params.get('id')); // 'alice'
+ * console.log(params.get('category')); // 'books'
  */
 export class ParamsContext extends Map<string, DefaultParamValue> {
   constructor(params: Param = {}) {
@@ -24,11 +31,15 @@ export class ParamsContext extends Map<string, DefaultParamValue> {
 
 /**
  * Represents a context for query parameters during link generation.
+ * This class extends the built-in URLSearchParams to provide a convenient way
+ * to manage query parameters. It accepts multiple query objects and merges them,
+ * allowing for flexible query parameter handling.
  *
- * This class extends the built-in `Map` to provide additional functionality for
- * managing query parameters. It allows adding multiple values for the same key,
- * which is useful for handling cases where a query parameter can have multiple
- * values (e.g., `?key=value1&key=value2`).
+ * @example
+ * const query = new QueryContext({ lang: 'en' }, { page: 2 });
+ * console.log(query.get('lang')); // 'en'
+ * console.log(query.get('page')); // '2'
+ * console.log(query.toString()); // 'lang=en&page=2'
  */
 export class QueryContext extends URLSearchParams {
   constructor(...query_params: QueryArg[]) {
@@ -256,7 +267,8 @@ function remove_constraint_area(path: string): string {
   return path.replace(constraint_area, "");
 }
 
-function replace_params(ctx: RouteContext): string {
+// Default parameter replacer that uses a regular expression to find parameter placeholders in the path and replace them with the corresponding values from the context.
+export function replace_params(ctx: RouteContext): string {
   const param_area_regex = new RegExp(
     `(?<=${Symbols.PathSeparater})${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
     "g",
@@ -269,6 +281,7 @@ function replace_params(ctx: RouteContext): string {
   });
 }
 
-function format_qs(ctx: RouteContext): string {
+// Default query string formatter that simply converts the query parameters to a string using URLSearchParams.
+export function format_qs(ctx: RouteContext): string {
   return ctx.query.toString();
 }
