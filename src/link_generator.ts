@@ -1,16 +1,53 @@
 import type {
-	DefaultParamValue,
-	FlatRouteConfig,
-	FlatRoutes,
-	LinkGenerator,
-	LinkGeneratorOptions,
-	Param,
-	ParamArgs,
-	QueryArg,
-	QueryContext,
-	RouteConfig,
+  DefaultParamValue,
+  FlatRouteConfig,
+  FlatRoutes,
+  LinkGenerator,
+  LinkGeneratorOptions,
+  ParamArgs,
+  QueryArg,
+  QueryArgValue,
+  RouteConfig,
+  RouteContextInit,
 } from "./types.ts";
 import { Symbols } from "./symbols.ts";
+
+/*
+ * Represents a context for path parameters during link generation.
+ */
+export class ParamsContext extends Map<string, DefaultParamValue> {}
+
+/**
+ * Represents a context for query parameters during link generation.
+ *
+ * This class extends the built-in `Map` to provide additional functionality for
+ * managing query parameters. It allows adding multiple values for the same key,
+ * which is useful for handling cases where a query parameter can have multiple
+ * values (e.g., `?key=value1&key=value2`).
+ */
+export class QueryContext extends Map<string, QueryArgValue[]> {
+  /*
+   * Adds a value or values to the specified query parameter key.
+   * If the key already exists, the new values are appended to the existing array of values.
+   * If the key does not exist, a new entry is created with the provided values.
+   *
+   * @param key - The query parameter key to which the value(s) should be added.
+   * @param values - One or more values to add to the specified key.
+   *
+   * @example
+   * const queryContext = new QueryContext();
+   * queryContext.add("key", "value1", "value2");
+   * console.log(queryContext.get("key")); // Output: ["value1", "value2"]
+   */
+  add(key: string, ...values: QueryArgValue[]) {
+    const current = this.get(key);
+    if (current) {
+      this.set(key, [...current, ...values]);
+    } else {
+      this.set(key, values);
+    }
+  }
+}
 
 /**
  * Represents the context of a route during link generation.
@@ -27,18 +64,17 @@ import { Symbols } from "./symbols.ts";
  * @property query - A normalized query object that combines all query fragments.
  */
 export class RouteContext<Config extends RouteConfig> {
-	#id: keyof FlatRoutes<Config>;
-	path = "";
-	params: Param = {};
-	query: QueryContext<Param> = {};
+  readonly id: keyof FlatRoutes<Config>;
+  path: string;
+  params: ParamsContext;
+  query: QueryContext;
 
-	constructor(id: keyof FlatRoutes<Config>) {
-		this.#id = id;
-	}
-
-	get id(): keyof FlatRoutes<Config> {
-		return this.#id;
-	}
+  constructor(id: keyof FlatRoutes<Config>, init?: RouteContextInit) {
+    this.id = id;
+    this.path = init?.path ?? "";
+    this.params = init?.params ?? new ParamsContext();
+    this.query = init?.query ?? new QueryContext();
+  }
 }
 
 /**
@@ -86,42 +122,61 @@ export class RouteContext<Config extends RouteConfig> {
  * 	link('users/user', { id: 'alice' }); // => /users/alice
  *
  * 	link('posts', undefined, { page: 2 }); // => /posts?page=2
+ *
+ * @example
+ * const route_config = {
+ *   user: {
+ *     path: "/users/:user"
+ *   }
+ * } as const satisfies RouteConfig;
+ *
+ * const transform1 = (ctx: RouteContext<typeof route_config>) => {
+ *   if (ctx.id === "user") {
+ *     ctx.params.set("user", "alice");
+ *     ctx.query.set("lang", ["en"]);
+ *   }
+ * }
+ *
+ * const link = link_generator(route_config, { transforms: [transform1] });
+ *
+ * link("user", { user: "bob" }); // => /users/alice?lang=en
  */
 export function link_generator<Config extends RouteConfig>(
-	route_config: Config,
-	options?: LinkGeneratorOptions<Config>,
+  route_config: Config,
+  options?: LinkGeneratorOptions<Config>,
 ): LinkGenerator<FlatRoutes<Config>> {
-	const routes = create_routes_map(flatten_route_config(route_config));
-	const should_append_query = options?.should_append_query ?? true;
-	const transforms = options?.transforms ?? [];
+  const routes = create_routes_map(flatten_route_config(route_config));
+  const should_append_query = options?.should_append_query ?? true;
+  const transforms = options?.transforms ?? [];
 
-	return <RouteId extends keyof FlatRoutes<Config>>(
-		route_id: RouteId,
-		...params: ParamArgs<FlatRoutes<Config>, RouteId>
-	): string => {
-		let path = routes.get(route_id) as string;
-		const [path_params, ...query_params] = params;
-		const ctx = new RouteContext<Config>(route_id);
-		ctx.path = path;
-		ctx.params = path_params ?? {};
-		ctx.query = create_query_context((query_params ?? []) as QueryArg[]);
+  return <RouteId extends keyof FlatRoutes<Config>>(
+    route_id: RouteId,
+    ...params: ParamArgs<FlatRoutes<Config>, RouteId>
+  ): string => {
+    let path = routes.get(route_id) as string;
+    const [path_params, ...query_params] = params;
+    const ctx = new RouteContext<Config>(route_id, {
+      path,
+      params: new ParamsContext(Object.entries(path_params ?? {})),
+      query: create_query_context((query_params ?? []) as QueryArg[]),
+    });
 
-		for (const transform of transforms) {
-			transform(ctx);
-		}
+    for (const transform of transforms) {
+      transform(ctx);
+    }
 
-		path = replace_params_area(ctx.path, ctx.params);
+    path = replace_params_area(ctx.path, ctx.params);
 
-		if (should_append_query && Object.keys(ctx.query).length > 0) {
-			const qs = generate_query_string(ctx.query);
+    if (should_append_query && ctx.query.size > 0) {
+      const qs = generate_query_string(ctx.query);
 
-			if (qs !== "") {
-				path += `?${qs}`;
-			}
-		}
+      if (qs !== "") {
+        path += `?${qs}`;
+      }
+    }
 
-		return path;
-	};
+    return path;
+  };
 }
 
 /**
@@ -159,117 +214,123 @@ export function link_generator<Config extends RouteConfig>(
  * // }
  */
 export function flatten_route_config(
-	route_config: RouteConfig,
-	parent_path = "",
-	result: FlatRouteConfig = {},
+  route_config: RouteConfig,
+  parent_path = "",
+  result: FlatRouteConfig = {},
 ): FlatRouteConfig {
-	for (const parent_route_name in route_config) {
-		const route = route_config[parent_route_name];
-		const current_path = remove_query_area(route.path);
-		const path_with_parent = `${parent_path}${current_path}`;
+  for (const parent_route_name in route_config) {
+    const route = route_config[parent_route_name];
+    const current_path = remove_query_area(route.path);
+    const path_with_parent = `${parent_path}${current_path}`;
 
-		result[parent_route_name] = path_with_parent;
+    result[parent_route_name] = path_with_parent;
 
-		if (route.children) {
-			const children = flatten_route_config(route.children, path_with_parent);
+    if (route.children) {
+      const children = flatten_route_config(route.children, path_with_parent);
 
-			for (const child_route_name in children) {
-				const child_route_id = `${parent_route_name}${Symbols.PathSeparater}${child_route_name}`;
+      for (const child_route_name in children) {
+        const child_route_id =
+          `${parent_route_name}${Symbols.PathSeparater}${child_route_name}`;
 
-				result[child_route_id] = children[child_route_name];
-			}
-		}
-	}
+        result[child_route_id] = children[child_route_name];
+      }
+    }
+  }
 
-	return result;
+  return result;
 }
 
-function create_query_context(query_params: Param[]): QueryContext<Param> {
-	const result = {} as QueryContext<Param>;
+function create_query_context(query_params: QueryArg[]): QueryContext {
+  const result = new QueryContext();
 
-	for (const q of query_params) {
-		for (const [key, value] of Object.entries(q)) {
-			if (!result[key]) {
-				result[key] = [value];
-			} else {
-				result[key].push(value);
-			}
-		}
-	}
+  for (const q of query_params) {
+    for (const [key, value] of Object.entries(q)) {
+      if (!result.has(key)) {
+        result.set(key, [value]);
+      } else {
+        const current_result_value = result.get(key)!;
+        result.set(key, [...current_result_value, value]);
+      }
+    }
+  }
 
-	return result;
+  return result;
 }
 
 function remove_query_area(path: string): string {
-	const starting_query_index = path.indexOf(Symbols.Query);
-	const is_include_query = starting_query_index > 0;
+  const starting_query_index = path.indexOf(Symbols.Query);
+  const is_include_query = starting_query_index > 0;
 
-	return is_include_query ? path.slice(0, starting_query_index) : path;
+  return is_include_query ? path.slice(0, starting_query_index) : path;
 }
 
 function create_routes_map(flat_route: FlatRouteConfig) {
-	const routes_map = new Map();
+  const routes_map = new Map();
 
-	for (const [route_id, path_template] of Object.entries(flat_route)) {
-		let path_to_format = path_template;
+  for (const [route_id, path_template] of Object.entries(flat_route)) {
+    let path_to_format = path_template;
 
-		if (has_constraint_area(path_template)) {
-			path_to_format = remove_constraint_area(path_template);
-		}
+    if (has_constraint_area(path_template)) {
+      path_to_format = remove_constraint_area(path_template);
+    }
 
-		routes_map.set(route_id, path_to_format);
-	}
+    routes_map.set(route_id, path_to_format);
+  }
 
-	return routes_map;
+  return routes_map;
 }
 
 function has_constraint_area(path: string): boolean {
-	const constraint_open_index = path.indexOf(Symbols.ConstraintOpen);
+  const constraint_open_index = path.indexOf(Symbols.ConstraintOpen);
 
-	return constraint_open_index > 0;
+  return constraint_open_index > 0;
 }
 
 function remove_constraint_area(path: string): string {
-	const constraint_area = new RegExp(
-		`${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
-		"g",
-	);
+  const constraint_area = new RegExp(
+    `${Symbols.ConstraintOpen}.*?${Symbols.ConstraintClose}`,
+    "g",
+  );
 
-	return path.replace(constraint_area, "");
+  return path.replace(constraint_area, "");
 }
 
-function replace_params_area(path: string, params: Param): string {
-	const param_area_regex = new RegExp(
-		`(?<=${Symbols.PathSeparater})${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
-		"g",
-	);
+function replace_params_area(path: string, params: ParamsContext): string {
+  const param_area_regex = new RegExp(
+    `(?<=${Symbols.PathSeparater})${Symbols.PathParam}([^\\${Symbols.PathSeparater}?]+)`,
+    "g",
+  );
 
-	return path.replace(param_area_regex, (_, param_name) => {
-		const param_value = params[param_name];
+  return path.replace(param_area_regex, (_, param_name) => {
+    const param_value = params.get(param_name) ?? "";
 
-		return encodeURIComponent(param_value);
-	});
+    return encodeURIComponent(param_value);
+  });
 }
 
-function create_query_string(key: string, values: DefaultParamValue[]): string {
-	const qs: string[] = [];
+function create_query_string(key: string, values: QueryArgValue[]): string {
+  const qs: string[] = [];
 
-	for (const value of values.filter((v) => v !== undefined && v !== "")) {
-		qs.push(`${key}=${encodeURIComponent(value)}`);
-	}
+  for (
+    const value of values.filter(
+      (v) => v !== undefined && v !== "",
+    ) as DefaultParamValue[]
+  ) {
+    qs.push(`${key}=${encodeURIComponent(value)}`);
+  }
 
-	return qs.join(Symbols.QuerySeparator);
+  return qs.join(Symbols.QuerySeparator);
 }
 
-function generate_query_string(query_context: QueryContext<Param>): string {
-	const qs: string[] = [];
+function generate_query_string(query_context: QueryContext): string {
+  const qs: string[] = [];
 
-	for (const [key, values] of Object.entries(query_context)) {
-		const partial_qs = create_query_string(key, values);
-		if (partial_qs !== "") {
-			qs.push(partial_qs);
-		}
-	}
+  for (const [key, values] of query_context) {
+    const q = create_query_string(key, values);
+    if (q !== "") {
+      qs.push(q);
+    }
+  }
 
-	return qs.join(Symbols.QuerySeparator);
+  return qs.join(Symbols.QuerySeparator);
 }
