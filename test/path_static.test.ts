@@ -1,7 +1,11 @@
 import { assertEquals } from "@std/assert/equals";
 import { assertType, type IsExact } from "@std/testing/types";
 import { flatten_route_config, link_generator } from "../src/link_generator.ts";
-import type { ExtractRouteData, FlatRoutes, RouteConfig } from "../src/mod.ts";
+import type {
+  ExtractRouteData,
+  FlatRoutes,
+  RouteConfig,
+} from "../src/types.ts";
 
 const route_config = {
   root: {
