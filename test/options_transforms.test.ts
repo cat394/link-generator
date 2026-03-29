@@ -7,21 +7,15 @@ import {
 } from "../src/link_generator.ts";
 import type { RouteConfig } from "../src/types.ts";
 
-Deno.test("add: should create a new entry when the key does not exist", () => {
-  const ctx = new QueryContext();
+Deno.test("query context ", () => {
+  const query_context = new QueryContext(
+    { lang: "en", page: 2 },
+    { lang: "fr" },
+  );
 
-  ctx.add("key", "a");
-
-  assertEquals(ctx.get("key"), ["a"]);
-});
-
-Deno.test("add: should append values to an existing key", () => {
-  const ctx = new QueryContext();
-
-  ctx.set("key", ["a"]);
-  ctx.add("key", "b");
-
-  assertEquals(ctx.get("key"), ["a", "b"]);
+  assertEquals(query_context.get("lang"), "en");
+  assertEquals(query_context.getAll("lang"), ["en", "fr"]);
+  assertEquals(query_context.get("page"), "2");
 });
 
 Deno.test("transform function receives correct RouteContext", () => {
@@ -31,12 +25,12 @@ Deno.test("transform function receives correct RouteContext", () => {
     },
   } as const satisfies RouteConfig;
 
-  let captured: RouteContext<typeof route_config> | null = null;
+  let received_ctx: RouteContext<typeof route_config> | null = null;
 
   const transform = (ctx: RouteContext<typeof route_config>) => {
-    captured = ctx;
+    received_ctx = ctx;
     ctx.params.set("id", "alice");
-    ctx.query.set("lang", ["en"]);
+    ctx.query.set("lang", "en");
   };
 
   const link = link_generator(route_config, {
@@ -49,9 +43,9 @@ Deno.test("transform function receives correct RouteContext", () => {
 
   const expected = new RouteContext<typeof route_config>("user", {
     path: "/users/:id",
-    params: new ParamsContext([["id", "alice"]]),
-    query: new QueryContext([["lang", ["en"]]]),
+    params: new ParamsContext({ id: "alice" }),
+    query: new QueryContext({ lang: "en" }),
   });
 
-  assertEquals(captured, expected);
+  assertEquals(received_ctx, expected);
 });
