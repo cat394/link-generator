@@ -101,21 +101,24 @@ Deno.test("ExtractRouteData type", () => {
   >(true);
 });
 
-Deno.test("flatten_route_config should return flat route config and remove query area", () => {
-  const expected_flat_route_config = {
-    root: "/",
-    with_name: "/name",
-    nested: "/nested",
-    "nested/deep": "/nested/deep",
-    nested_with_parent_param: "/nested",
-    "nested_with_parent_param/deep": "/nested/deep",
-    multiple_query: "/",
-  };
+Deno.test(
+  "flatten_route_config should return flat route config and remove query area",
+  () => {
+    const expected_flat_route_config = {
+      root: "/",
+      with_name: "/name",
+      nested: "/nested",
+      "nested/deep": "/nested/deep",
+      nested_with_parent_param: "/nested",
+      "nested_with_parent_param/deep": "/nested/deep",
+      multiple_query: "/",
+    };
 
-  assertEquals(flat_route_config, expected_flat_route_config);
-});
+    assertEquals(flat_route_config, expected_flat_route_config);
+  },
+);
 
-Deno.test("create_link_generator", async (t) => {
+Deno.test("create link", async (t) => {
   const link = link_generator(route_config);
 
   await t.step("string param value", () => {
@@ -204,55 +207,63 @@ Deno.test("create_link_generator", async (t) => {
     assertEquals(path_to_multiple_query, "/?key1=a&key2=b");
   });
 
-  await t.step("should empty or undefined query is not generated", () => {
-    const first_empty_string_query = link(
-      "multiple_query",
-      undefined,
-      {
-        key1: "",
-      },
-      { key2: "b" },
-    );
-    assertEquals(first_empty_string_query, "/?key2=b");
+  await t.step(
+    "should include empty string but exclude undefined query",
+    () => {
+      const first_empty_string_query = link(
+        "multiple_query",
+        undefined,
+        {
+          key1: "",
+        },
+        { key2: "b" },
+      );
 
-    const first_undefined_query = link(
-      "multiple_query",
-      undefined,
-      {
-        key1: undefined,
-      },
-      { key2: "b" },
-    );
-    assertEquals(first_undefined_query, "/?key2=b");
+      assertEquals(first_empty_string_query, "/?key1=&key2=b");
 
-    const last_empty_string_query = link(
-      "multiple_query",
-      undefined,
-      {
-        key1: "a",
-      },
-      { key2: "" },
-    );
-    assertEquals(last_empty_string_query, "/?key1=a");
+      const first_undefined_query = link(
+        "multiple_query",
+        undefined,
+        {
+          key1: undefined,
+        },
+        { key2: "b" },
+      );
 
-    const last_undefined_query = link(
-      "multiple_query",
-      undefined,
-      {
-        key1: undefined,
-      },
-      { key2: "b" },
-    );
-    assertEquals(last_undefined_query, "/?key2=b");
+      assertEquals(first_undefined_query, "/?key2=b");
 
-    const none_queries = link(
-      "multiple_query",
-      undefined,
-      {
-        key1: undefined,
-      },
-      { key2: "" },
-    );
-    assertEquals(none_queries, "/");
-  });
+      const last_empty_string_query = link(
+        "multiple_query",
+        undefined,
+        {
+          key1: "a",
+        },
+        { key2: "" },
+      );
+
+      assertEquals(last_empty_string_query, "/?key1=a&key2=");
+
+      const last_undefined_query = link(
+        "multiple_query",
+        undefined,
+        {
+          key1: "a",
+        },
+        { key2: undefined },
+      );
+
+      assertEquals(last_undefined_query, "/?key1=a");
+
+      const none_queries = link(
+        "multiple_query",
+        undefined,
+        {
+          key1: undefined,
+        },
+        { key2: undefined },
+      );
+
+      assertEquals(none_queries, "/");
+    },
+  );
 });
