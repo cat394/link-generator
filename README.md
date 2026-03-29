@@ -1,408 +1,312 @@
 # Link Generator
 
-Creates links type-safely.
+Create links from a route config with type-safe route IDs, params, and query
+arguments.
 
-This package distributed through a package registry called the
-[JSR](https://jsr.io/@kokomi/link-generator).
+This package is distributed through the JSR registry:
+https://jsr.io/@kokomi/link-generator
 
 ## Installation
-
-NPM:
 
 ```bash
 npx jsr add @kokomi/link-generator
 ```
 
-PNPM:
+## Basic usage
 
-```bash
-pnpm dlx jsr add @kokomi/link-generator
-```
-
-Deno:
-
-```bash
-deno add @kokomi/link-generator
-```
-
-Yarn:
-
-```bash
-yarn dlx jsr add @kokomi/link-generator
-```
-
-Bun:
-
-```bash
-bunx jsr add @kokomi/link-generator
-```
-
-## Usage
-
-1. Define a route configuration object:
-
-   ```ts
-   import { link_generator, type RouteConfig } from "@kokomi/link-generator";
-
-   const route_config = {
-     home: {
-       path: "/",
-     },
-     users: {
-       path: "/users",
-       children: {
-         user: {
-           path: "/:id",
-         },
-       },
-     },
-   } as const satisfies RouteConfig;
-   ```
-
-2. Create a generator:
-
-   ```ts
-   const link = link_generator(route_config);
-   ```
-
-3. Generate links:
-
-   ```ts
-   link("home"); // => '/'
-   link("users"); // => '/users'
-   link("users/user", { id: "alice" }); // => '/users/alice'
-   ```
-
-## Query
-
-The link function accepts a list of objects as query parameter generators,
-starting from the second argument onward. In other words, the types of the
-arguments from the second position onward in the `link` function are any number
-of `Partial<Query>` types.
-
-Moreover, if the object for setting query parameters contains an empty string or
-an `undefined`, the `link` function will not generate that query.
-
-1. Create a generator:
-
-   ```ts
-   const route_config = {
-     products: {
-       path: "/products?color",
-     },
-   } as const satisfies RouteConfig;
-
-   const link = link_generator(route_config);
-   ```
-
-2. Generate links:
-
-   ```ts
-   link("products", undefined, { color: "red" }, { color: "blue" }); // => '/products?color=red&color=blue'
-
-   link("products", undefined, { color: "" }, { color: undefined }); // => /products
-   ```
-
-## Options
-
-The `link_generator` function also accepts an optional options object as its
-second argument.
-
-### should_append_query
-
-A boolean that specifies whether encoded query string should be appended to the
-final link. This option is especially useful when combined with the transform
-option to ensure that custom paths are preserved or enhanced with query strings
-as needed. Default is `true`.
+### 1. Define routes
 
 ```ts
+import { link_generator, type RouteConfig } from "@kokomi/link-generator";
+
 const route_config = {
-  products: {
-    path: "/products?size",
-  },
-};
-
-const link = link_generator(route_config, { should_append_query: false });
-
-link("products", undefined, { size: "sm" }); // => /products (no size query string!)
-```
-
-### transform
-
-The `transform` option allows you to intercept and customize the generated path
-before it is finalized. It accepts a callback function that receives a
-`RouteContext` object containing detailed information such as the route ID,
-current path, params, and query values.
-
-The function should return either:
-
-- a `string` representing the custom path to use, or
-
-- `undefined` to indicate that the generator should fall back to the default
-  `ctx.path`.
-
-This makes it easy to override only specific cases while preserving the default
-behavior for others.
-
-If `should_append_query` is `true`, then any query string will still be appended
-to the returned string (whether from `transform` or fallback). To prevent this,
-you can set `should_append_query: false`.
-
-This option is useful when you want to customize routing logic, apply
-conditional rewrites, or insert static shortcuts programmatically.
-
-```ts
-const route_config = {
-  products: {
-    path: "/products?size",
-  },
-};
-
-const link = link_generator(route_config, {
-  transform: (ctx) => {
-    const { id, path, params, query } = ctx;
-
-    if (query.size) {
-      return "/custom";
-    }
-  },
-  should_append_query: false,
-});
-
-link("products"); // => /products
-link("products", { size: "sm" }); // => /custom
-```
-
-## Constraint Area
-
-The type of values for path and query parameters is `string|number|boolean` by
-default. While this is sufficient in most cases, this type can be made more
-strict by defining a **constraint area**. This is a special string that can be
-included in the path, like `<Constraint>`. Conditions can be defined within
-opening (`<`) and closing (`>`) angle brackets. In this field, the following
-three type constraints can be placed on path and query parameters:
-
-- **String Type**
-
-  You can narrow down the id to a string type by defining a condition field with
-  a parameter name followed by the string `string`, as in `/:id<string>`.
-
-- **Number Type**
-
-  You can narrow down the id to a number type by defining a condition field with
-  a parameter name followed by the string `number`, as in `/:id<number>`.
-
-- **Boolean Type**
-
-  You can narrow down the id to a boolean type by defining a condition field
-  with a parameter name followed by the string `boolean`, as in `/:id<boolean>`.
-
-- **Union Type**
-
-  If you want to be strict and require that params and query only accept certain
-  values other than string, number, and boolean, use the `<(Type1|Type2)>`
-  syntax.
-
-  The type of each segment of a union type defaults to its string literal type,
-  but you can manually cast strings that can be converted to a `number`, such as
-  1, or to `boolean`, such as `true` or `false`, or strings that represent types
-  such as string, number, or boolean. To do this, simply prepend `*` to the
-  string you want to cast, for example `*123`, `*true`, or `*string`.
-
-1. Create a generator:
-
-   ```ts
-   const route_config = {
-     user: {
-       path: "/users/:id<string>",
-     },
-     post: {
-       path: "/post/:id<number>",
-     },
-     category: {
-       path: "/categories/:id<(a|*10|*false)>",
-     },
-     news: {
-       path: "/news?archived<boolean>",
-     },
-     image: {
-       path: "/image?width<(auto|*number)>",
-     },
-   } as const satisfies RouteConfig;
-
-   const link = link_generator(route_config);
-   ```
-
-2. Generate links:
-
-   ```ts
-   link("user", { id: "alice" });
-   // Param type: { id: string }
-
-   link("post", { id: 1 });
-   // Param type: { id: number }
-
-   link("category", { id: "a" });
-   // Param type: { id: 'a' | 10 | false }
-
-   link("news", undefined, { archived: true });
-   // Query type: { archived: boolean }
-
-   link("image", undefined, { width: "auto" });
-   // Query type: { width: 'auto' | number }
-   ```
-
-## URL
-
-If the link you want to generate contains a protocol, special type inference
-needs to be done, so write the protocol and domain like this, with the protocol
-ending in `://` and no `/` before the domain:
-
-```ts
-const route_config = {
-  external: {
-    path: "https://",
+  home: { path: "/" },
+  users: {
+    path: "/users",
     children: {
-      youtube: {
-        path: "youtube.com",
-        children: {
-          video: {
-            path: "/watch?v",
-          },
-        },
-      },
+      user: { path: "/:id" },
     },
   },
+  posts: { path: "/posts?page" },
+} as const satisfies RouteConfig;
+```
+
+### 2. Create a generator
+
+```ts
+const link = link_generator(route_config);
+```
+
+### 3. Generate links
+
+```ts
+link("home"); // "/"
+link("users"); // "/users"
+link("users/user", { id: "alice" }); // "/users/alice"
+link("posts", undefined, { page: 2 }); // "/posts?page=2"
+```
+
+## Query parameters
+
+You can pass multiple query objects. They are merged in order.
+
+`undefined` values are ignored.
+
+```ts
+const route_config = {
+  products: { path: "/products?color&page" },
 } as const satisfies RouteConfig;
 
 const link = link_generator(route_config);
 
-link("external/youtube/video", undefined, { v: "123" });
-// => 'https://youtube.com/watch?v=123'
+link("products", undefined, { color: "red" }, { page: 2 });
+// "/products?color=red&page=2"
 ```
 
-## Route Type
-
-In this library, you can obtain detailed type information for each route using
-the `ExtractRouteData` type.
-
-In addition, the `FlatRoutes` type is provided to flatten your nested route
-configuration into an object where each key represents a unique route ID and the
-value is the corresponding path.
-
-For example, consider the following route configuration:
+Repeated keys are kept.
 
 ```ts
-import type { FlatRoutes, RouteConfig } from "@kokomi/link-generator";
+link("products", undefined, { color: "red" }, { color: "blue" });
+// "/products?color=red&color=blue"
+```
+
+## How a link is generated
+
+The final URL is built in the following order:
+
+1. **Resolve route**
+   - The route ID is mapped to a path template.
+   - Example: `"users/user"` → `"/users/:id"`
+
+2. **Create context**
+   - `RouteContext` is created with:
+     - `path`
+     - `params`
+     - `query`
+
+3. **Apply transforms**
+   - Each function in `transforms` runs in order.
+   - You can mutate `ctx.path`, `ctx.params`, and `ctx.query`.
+
+4. **Replace path params**
+   - `replace_params_fn(ctx)` is called.
+   - Default: replaces `:param` with encoded values.
+
+5. **Format query string**
+   - `format_qs_fn(ctx)` is called.
+   - Returns a string like `"a=1&b=2"` (without `?`).
+
+6. **Combine**
+   - If the query string is not empty, `"?"` is added.
+   - Final result:
+     ```
+     path + "?" + query
+     ```
+
+### Minimal example
+
+```ts
+link("users/user", { id: "alice" }, { tab: "profile" });
+```
+
+Flow:
+
+```
+"/users/:id"
+→ (transform)
+→ "/users/:id"
+→ (replace params)
+→ "/users/alice"
+→ (format query)
+→ "tab=profile"
+→ "/users/alice?tab=profile"
+```
+
+## Options
+
+### `transforms`
+
+`transforms` is a list of functions that run before the final URL is built.
+
+Each transform receives a `RouteContext`. You can mutate `ctx.path`,
+`ctx.params`, or `ctx.query`.
+
+```ts
+const route_config = {
+  user: { path: "/users/:id" },
+} as const satisfies RouteConfig;
+
+const link = link_generator(route_config, {
+  transforms: [
+    (ctx) => {
+      if (ctx.id === "user") {
+        ctx.path = "/members/:id";
+      }
+    },
+    (ctx) => {
+      if (ctx.id === "user") {
+        ctx.params.set("id", String(ctx.params.get("id")).toUpperCase());
+      }
+    },
+  ],
+});
+
+link("user", { id: "alice" }); // "/members/ALICE"
+```
+
+Use `transforms` when you want small, reusable changes before parameter
+replacement and query formatting.
+
+### `replace_params_fn`
+
+`replace_params_fn` replaces path parameters such as `:id`.
+
+By default, the library uses `replace_params(ctx)`.
+
+```ts
+import {
+  link_generator,
+  replace_params,
+  type RouteConfig,
+} from "@kokomi/link-generator";
 
 const route_config = {
+  user: { path: "/users/:id" },
+} as const satisfies RouteConfig;
+
+const link = link_generator(route_config, {
+  replace_params_fn: (ctx) => {
+    if (ctx.id === "user") {
+      return ctx.path.replace(":id", "bob");
+    }
+
+    return replace_params(ctx);
+  },
+});
+
+link("user", { id: "alice" }); // "/users/bob"
+```
+
+Use this when you want full control over how path params are resolved.
+
+### `format_qs_fn`
+
+`format_qs_fn` returns the final query string without the leading `?`.
+
+By default, the library uses `format_qs(ctx)`.
+
+```ts
+import {
+  format_qs,
+  link_generator,
+  type RouteConfig,
+} from "@kokomi/link-generator";
+
+const route_config = {
+  products: { path: "/products?color" },
+} as const satisfies RouteConfig;
+
+const link = link_generator(route_config, {
+  format_qs_fn: (ctx) => {
+    if (ctx.id === "products") {
+      const qs = new URLSearchParams(ctx.query);
+      const color = qs.get("color");
+
+      if (color) {
+        qs.set("color", color.toUpperCase());
+      }
+
+      qs.set("custom", "YES");
+      return qs.toString();
+    }
+
+    return format_qs(ctx);
+  },
+});
+
+link("products", undefined, { color: "red" });
+// "/products?color=RED&custom=YES"
+```
+
+Use this when you want custom query-string rules.
+
+## Context objects
+
+### `ParamsContext`
+
+`ParamsContext` is a `Map<string, DefaultParamValue>` for path params.
+
+```ts
+const params = new ParamsContext({ id: "alice" });
+
+params.get("id"); // "alice"
+```
+
+### `QueryContext`
+
+`QueryContext` is a `URLSearchParams` instance for query params.
+
+It merges multiple query objects and stringifies values. `undefined` values are
+skipped.
+
+```ts
+const query = new QueryContext({ lang: "en" }, { page: 2 });
+
+query.get("lang"); // "en"
+query.get("page"); // "2"
+query.toString(); // "lang=en&page=2"
+```
+
+### `RouteContext`
+
+`RouteContext` is passed to `transforms`, `replace_params_fn`, and
+`format_qs_fn`.
+
+It has these properties:
+
+- `id`: flattened route ID such as `"users/user"`
+- `path`: current path template
+- `params`: `ParamsContext`
+- `query`: `URLSearchParams`
+
+```ts
+const ctx = new RouteContext("users/user", {
+  path: "/users/:id",
+  params: new ParamsContext({ id: "alice" }),
+  query: new QueryContext({ tab: "profile" }),
+});
+```
+
+## Route flattening
+
+Nested routes are flattened into slash-separated route IDs.
+
+```ts
+const route_config = {
+  home: { path: "/" },
   users: {
     path: "/users",
     children: {
-      user: {
-        path: "/:id",
-      },
+      user: { path: "/:id" },
     },
   },
 } as const satisfies RouteConfig;
 
-type Flattened = FlatRoutes<typeof route_config>;
-```
-
-The `Flattened` type then looks like this:
-
-```ts
-{
-  users: "/users",
-  "users/user": "/users/:id"
-}
-```
-
-This flattening mechanism makes it easier to manage nested routes by ensuring
-the uniqueness of route IDs and combining the nested paths in a predictable
-manner.
-
-Furthermore, the `ExtractRouteData` type leverages these flattened routes to
-extract additional type information such as parameters and query types. For
-example:
-
-```ts
-const route_config = {
-  user: {
-    path: "/users/:id",
-  },
-  news: {
-    path: "/news?archived<boolean>",
-  },
-} as const satisfies RouteConfig;
-
-type RouteData = ExtractRouteData<FlatRoutes<typeof route_config>>;
+flatten_route_config(route_config);
 // {
-//     user: {
-//         path: "/users/:id";
-//         params: Record<"id", DefaultParamValue>;
-//         query: never;
-//     };
-//     news: {
-//         path: "/news";
-//         params: never;
-//         query: Partial<Record<"archived", boolean>>;
-//     };
+//   home: "/",
+//   users: "/users",
+//   "users/user": "/users/:id",
 // }
 ```
 
-## Concept
+## Notes
 
-Links are fragile, so calling them by unique route ids is essential instead of
-hard-coding them. To ensure the uniqueness of route ids while creating them
-efficiently, we use TypeScript's type checking with objects. Defining properties
-with the same name at the same level of an object will cause a type error,
-ensuring no overlapping route ids. Additionally, child route ids can be made
-unique by prefixing them with the parent route id.
-
-```ts
-const obj = {
-  route1: {},
-
-  // Type error! An object literal cannot have multiple properties with the same name.
-  route1: {},
-};
-```
-
-By leveraging this, we can be confident that route ids do not overlap within the
-same level of the object. Moreover, the uniqueness of child route ids can be
-achieved by prefixing them with the parent route id. If the parent route id is
-unique, the child route ids will also be unique by necessity.
-
-```ts
-const obj = {
-  parent1: {
-    children: {
-      child1: {},
-    },
-  },
-  parent2: {
-    children: {
-      child1: {},
-    },
-  },
-};
-```
-
-The generated route ids would be:
-
-- parent1
-- parent1/child1
-- parent2
-- parent2/child1
-
-This approach enables flexible route ID creation while ensuring uniqueness
-across a wide namespace.
-
-## Acknowledgements
-
-This project was inspired by
-[nanostores/router](https://github.com/nanostores/router).
+- Query parts written in route paths are used only as a declaration hint. They
+  are removed from the stored path before link generation.
+- Constraint sections in paths are also removed before parameter replacement.
+- Path params are URL-encoded by the default `replace_params` function.
+- Query params are stringified by the default `format_qs` function. 
 
 ## License
 
