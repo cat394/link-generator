@@ -306,7 +306,7 @@ flatten_route_config(route_config);
   are removed from the stored path before link generation.
 - Constraint sections in paths are also removed before parameter replacement.
 - Path params are URL-encoded by the default `replace_params` function.
-- Query params are stringified by the default `format_qs` function. 
+- Query params are stringified by the default `format_qs` function.
 
 ## License
 
